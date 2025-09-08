@@ -1,16 +1,8 @@
 {
-  "buildCommand": "npm run build",
-  "framework": "nextjs",
-  "outputDirectory": ".next",
-  "installCommand": "npm install",
-  "devCommand": "npm run dev",
   "functions": {
-    "app/api/**/*.ts": {
+    "app/api/organization/route.ts": {
       "maxDuration": 10
     }
   },
-  "regions": ["nrt1"],
-  "env": {
-    "NODE_ENV": "production"
-  }
+  "regions": ["nrt1"]
 }
