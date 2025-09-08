@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Employee, Organization } from '../types/organization'
 
 interface EmployeeModalProps {
@@ -9,13 +9,151 @@ interface EmployeeModalProps {
   onClose: () => void
   organization: Organization
   onUpdateEmployee: (updatedEmployee: Employee) => void
+  onUpdateOrganization?: (updatedOrganization: Organization) => void
 }
 
-export function EmployeeModal({ employee, isOpen, onClose, organization, onUpdateEmployee }: EmployeeModalProps) {
+export function EmployeeModal({ employee, isOpen, onClose, organization, onUpdateEmployee, onUpdateOrganization }: EmployeeModalProps) {
   const [isEditing, setIsEditing] = useState(false)
   const [editForm, setEditForm] = useState<Employee | null>(null)
+  const [activeTab, setActiveTab] = useState<'info' | 'evaluees'>('info')
+  const [isEditingEvaluees, setIsEditingEvaluees] = useState(false)
+
+  // モーダルが開かれるたびに基本情報タブにリセット
+  useEffect(() => {
+    if (isOpen && employee) {
+      setActiveTab('info')
+      setIsEditing(false)
+      setIsEditingEvaluees(false)
+      setEditForm(null)
+    }
+  }, [isOpen, employee])
 
   if (!isOpen || !employee) return null
+
+  // 管理職かどうかを判定
+  const isManager = () => {
+    return organization.departments.some(dept => dept.managerId === employee.id) ||
+           organization.departments.some(dept => 
+             dept.sections.some(section => section.managerId === employee.id)
+           ) ||
+           organization.departments.some(dept => 
+             dept.sections.some(section => 
+               section.courses.some(course => course.managerId === employee.id)
+             )
+           )
+  }
+
+  // 1次評価対象者を取得（カスタム評価関係を考慮）
+  const getDirectEvaluees = (): Employee[] => {
+    // カスタム評価関係がある場合はそれを優先
+    const customEvaluees = organization.employees.filter(emp => emp.evaluatorId === employee.id)
+    if (customEvaluees.length > 0) {
+      return customEvaluees
+    }
+    
+    // デフォルトの組織階層による評価関係
+    const evaluees: Employee[] = []
+    
+    // 本部長の場合：直属の部下と部長を評価
+    const managedDepartment = organization.departments.find(dept => dept.managerId === employee.id)
+    if (managedDepartment) {
+      // 直属の部下（本部直轄）
+      const directSubordinates = organization.employees.filter(emp => 
+        emp.department === managedDepartment.name && 
+        emp.section === '' &&
+        emp.id !== employee.id &&
+        !emp.evaluatorId // カスタム評価者が設定されていない場合のみ
+      )
+      evaluees.push(...directSubordinates)
+      
+      // 部長たち
+      managedDepartment.sections.forEach(section => {
+        const sectionManager = organization.employees.find(emp => 
+          emp.id === section.managerId && !emp.evaluatorId
+        )
+        if (sectionManager) {
+          evaluees.push(sectionManager)
+        }
+      })
+    }
+    
+    // 部長の場合：直属の部下と課長を評価
+    organization.departments.forEach(dept => {
+      const managedSection = dept.sections.find(section => section.managerId === employee.id)
+      if (managedSection) {
+        // 直属の部下（部直轄）
+        const directSubordinates = organization.employees.filter(emp => 
+          emp.department === dept.name && 
+          emp.section === managedSection.name && 
+          !emp.course &&
+          emp.id !== employee.id &&
+          !emp.evaluatorId
+        )
+        evaluees.push(...directSubordinates)
+        
+        // 課長たち
+        managedSection.courses.forEach(course => {
+          const courseManager = organization.employees.find(emp => 
+            emp.id === course.managerId && !emp.evaluatorId
+          )
+          if (courseManager) {
+            evaluees.push(courseManager)
+          }
+        })
+      }
+    })
+    
+    // 課長の場合：直属の課員を評価
+    organization.departments.forEach(dept => {
+      dept.sections.forEach(section => {
+        const managedCourse = section.courses.find(course => course.managerId === employee.id)
+        if (managedCourse) {
+          const courseMembers = organization.employees.filter(emp => 
+            emp.department === dept.name && 
+            emp.section === section.name && 
+            emp.course === managedCourse.name &&
+            emp.id !== employee.id &&
+            !emp.evaluatorId
+          )
+          evaluees.push(...courseMembers)
+        }
+      })
+    })
+    
+    return evaluees
+  }
+
+  // 同じ部門内の管理職を取得（評価者候補）
+  const getDepartmentManagers = (): Employee[] => {
+    const managers: Employee[] = []
+    const targetDepartment = organization.departments.find(dept => dept.name === employee.department)
+    
+    if (targetDepartment) {
+      // 本部長
+      const deptManager = organization.employees.find(emp => emp.id === targetDepartment.managerId)
+      if (deptManager && deptManager.id !== employee.id) {
+        managers.push(deptManager)
+      }
+      
+      // 部長たち
+      targetDepartment.sections.forEach(section => {
+        const sectionManager = organization.employees.find(emp => emp.id === section.managerId)
+        if (sectionManager && sectionManager.id !== employee.id) {
+          managers.push(sectionManager)
+        }
+        
+        // 課長たち
+        section.courses.forEach(course => {
+          const courseManager = organization.employees.find(emp => emp.id === course.managerId)
+          if (courseManager && courseManager.id !== employee.id) {
+            managers.push(courseManager)
+          }
+        })
+      })
+    }
+    
+    return managers
+  }
 
   const startEditing = () => {
     setEditForm({ ...employee })
@@ -25,6 +163,7 @@ export function EmployeeModal({ employee, isOpen, onClose, organization, onUpdat
   const cancelEditing = () => {
     setIsEditing(false)
     setEditForm(null)
+    setActiveTab('info')
   }
 
   const saveEmployee = () => {
@@ -32,6 +171,7 @@ export function EmployeeModal({ employee, isOpen, onClose, organization, onUpdat
       onUpdateEmployee(editForm)
       setIsEditing(false)
       setEditForm(null)
+      setActiveTab('info')
     }
   }
 
@@ -44,18 +184,56 @@ export function EmployeeModal({ employee, isOpen, onClose, organization, onUpdat
     }
   }
 
+  // 被評価者の評価者を変更
+  const handleEvaluatorChange = (evalueeId: string, newEvaluatorId: string | null) => {
+    const updatedEmployee = organization.employees.find(emp => emp.id === evalueeId)
+    if (updatedEmployee) {
+      const modified = {
+        ...updatedEmployee,
+        evaluatorId: newEvaluatorId || undefined
+      }
+      
+      // 組織全体の従業員データを更新
+      const updatedOrganization = {
+        ...organization,
+        employees: organization.employees.map(emp => 
+          emp.id === evalueeId ? modified : emp
+        )
+      }
+      
+      // 組織データ全体を更新
+      if (onUpdateOrganization) {
+        onUpdateOrganization(updatedOrganization)
+      } else {
+        onUpdateEmployee(modified)
+      }
+    }
+  }
+
+  // 被評価者編集の開始/終了
+  const startEditingEvaluees = () => setIsEditingEvaluees(true)
+  const cancelEditingEvaluees = () => setIsEditingEvaluees(false)
+
   return (
     <div className="fixed inset-0 flex items-center justify-center z-50" style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}>
-      <div className="bg-white rounded-lg shadow-lg max-w-md w-full mx-4">
+      <div className="bg-white rounded-lg shadow-lg max-w-2xl w-full mx-4">
         <div className="flex justify-between items-center p-6 border-b">
           <h2 className="text-xl font-bold text-gray-800">社員情報</h2>
           <div className="flex items-center gap-2">
-            {!isEditing && (
+            {activeTab === 'info' && !isEditing && (
               <button
                 onClick={startEditing}
                 className="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 transition-colors"
               >
                 編集
+              </button>
+            )}
+            {activeTab === 'evaluees' && !isEditingEvaluees && (
+              <button
+                onClick={startEditingEvaluees}
+                className="px-3 py-1 bg-green-600 text-white text-sm rounded hover:bg-green-700 transition-colors"
+              >
+                被評価者編集
               </button>
             )}
             <button
@@ -67,8 +245,33 @@ export function EmployeeModal({ employee, isOpen, onClose, organization, onUpdat
           </div>
         </div>
         
+        {/* タブナビゲーション */}
+        <div className="flex border-b">
+          <button
+            onClick={() => !isEditing && !isEditingEvaluees && setActiveTab('info')}
+            className={`px-6 py-3 font-medium ${activeTab === 'info' 
+              ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50' 
+              : 'text-gray-600 hover:text-gray-800'
+            } ${(isEditing || isEditingEvaluees) ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}
+          >
+            基本情報
+          </button>
+          {isManager() && (
+            <button
+              onClick={() => !isEditing && !isEditingEvaluees && setActiveTab('evaluees')}
+              className={`px-6 py-3 font-medium ${activeTab === 'evaluees' 
+                ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50' 
+                : 'text-gray-600 hover:text-gray-800'
+              } ${(isEditing || isEditingEvaluees) ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}
+            >
+              被評価者（{getDirectEvaluees().length}名）
+            </button>
+          )}
+        </div>
+        
         <div className="p-6 space-y-4">
-          {isEditing && editForm ? (
+          {activeTab === 'info' ? (
+            isEditing && editForm ? (
             <>
               <div className="grid grid-cols-2 gap-4">
                 <div>
@@ -227,6 +430,85 @@ export function EmployeeModal({ employee, isOpen, onClose, organization, onUpdat
                 <p className="text-gray-800">{employee.birthDate}</p>
               </div>
             </>
+            )
+          ) : (
+            // 被評価者タブ
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-semibold text-gray-800">1次評価対象者</h3>
+                <span className="text-sm text-gray-500">合計 {getDirectEvaluees().length}名</span>
+              </div>
+              
+              {getDirectEvaluees().length === 0 ? (
+                <div className="text-center py-8 text-gray-500">
+                  <p>1次評価対象者はいません</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {getDirectEvaluees().map((evaluee) => (
+                    <div key={evaluee.id} className="flex items-center justify-between p-3 bg-gray-50 rounded border">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-3">
+                          <h4 className="font-medium text-gray-800">{evaluee.name}</h4>
+                          <span className="text-sm text-gray-600">（{evaluee.position}）</span>
+                          {evaluee.evaluatorId && (
+                            <span className="text-xs bg-orange-100 text-orange-800 px-2 py-1 rounded">
+                              カスタム評価
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-sm text-gray-500 mt-1">
+                          {evaluee.department} / {evaluee.section || '本部直轄'}
+                          {evaluee.course && ` / ${evaluee.course}`}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm text-gray-500">
+                        {isEditingEvaluees ? (
+                          <div className="flex items-center gap-2">
+                            <select
+                              value={evaluee.evaluatorId || employee.id}
+                              onChange={(e) => handleEvaluatorChange(evaluee.id, e.target.value === employee.id ? null : e.target.value)}
+                              className="text-xs px-2 py-1 border rounded"
+                            >
+                              <option value={employee.id}>
+                                {employee.name}（現在の評価者）- {employee.section || '本部直轄'}
+                              </option>
+                              {getDepartmentManagers()
+                                .filter(manager => manager.id !== employee.id)
+                                .map((manager) => (
+                                <option key={manager.id} value={manager.id}>
+                                  {manager.name}（{manager.position}）- {manager.section || '本部直轄'}{manager.course ? ` / ${manager.course}` : ''}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                        ) : (
+                          <span>ID: {evaluee.employeeId}</span>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+              
+              {isEditingEvaluees && (
+                <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded">
+                  <h4 className="font-medium text-yellow-800 mb-2">編集中</h4>
+                  <p className="text-sm text-yellow-700">
+                    被評価者の評価者を変更できます。同じ部門内の管理職のみが評価者として選択可能です。
+                  </p>
+                </div>
+              )}
+              
+              <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded">
+                <h4 className="font-medium text-blue-800 mb-2">評価対象の説明</h4>
+                <ul className="text-sm text-blue-700 space-y-1">
+                  <li>• デフォルト：組織階層に基づく評価関係</li>
+                  <li>• カスタム：個別に設定された評価関係</li>
+                  <li>• 評価者変更は同じ部門内の管理職に限定されます</li>
+                </ul>
+              </div>
+            </div>
           )}
         </div>
         
@@ -244,6 +526,21 @@ export function EmployeeModal({ employee, isOpen, onClose, organization, onUpdat
                 className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors"
               >
                 保存
+              </button>
+            </>
+          ) : isEditingEvaluees ? (
+            <>
+              <button
+                onClick={cancelEditingEvaluees}
+                className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 transition-colors"
+              >
+                キャンセル
+              </button>
+              <button
+                onClick={cancelEditingEvaluees}
+                className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors"
+              >
+                完了
               </button>
             </>
           ) : (

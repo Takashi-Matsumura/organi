@@ -1,10 +1,10 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { OrganizationChart } from '../components/OrganizationChart'
 import { DndOrganizationChart } from '../components/DndOrganizationChart'
-import { Organization } from '../types/organization'
-import { FaEdit, FaDownload, FaUpload } from 'react-icons/fa'
+import { Organization, Employee } from '../types/organization'
+import { FaEdit, FaDownload, FaUpload, FaChevronDown } from 'react-icons/fa'
 
 const loadOrganizationData = async (): Promise<Organization> => {
   try {
@@ -46,6 +46,21 @@ export default function Home() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [isEditMode, setIsEditMode] = useState(false)
+  const [showExportMenu, setShowExportMenu] = useState(false)
+  const exportMenuRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (exportMenuRef.current && !exportMenuRef.current.contains(event.target as Node)) {
+        setShowExportMenu(false)
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [])
 
   useEffect(() => {
     const initializeData = async () => {
@@ -76,21 +91,44 @@ export default function Home() {
     setIsEditMode(!isEditMode)
   }
 
-  const exportData = () => {
+  const exportData = (format: 'organization-md' | 'evaluation-md' | 'csv') => {
     if (!organizationData) return
-    const markdownContent = generateMarkdown(organizationData)
-    const dataBlob = new Blob([markdownContent], { type: 'text/markdown' })
+    
+    let content: string
+    let fileName: string
+    let mimeType: string
+    
+    switch (format) {
+      case 'organization-md':
+        content = generateOrganizationMarkdown(organizationData)
+        fileName = 'organization-structure.md'
+        mimeType = 'text/markdown'
+        break
+      case 'evaluation-md':
+        content = generateEvaluationMarkdown(organizationData)
+        fileName = 'evaluation-relationships.md'
+        mimeType = 'text/markdown'
+        break
+      case 'csv':
+        content = generateCSV(organizationData)
+        fileName = 'organization-evaluation-data.csv'
+        mimeType = 'text/csv'
+        break
+    }
+    
+    const dataBlob = new Blob([content], { type: mimeType })
     const url = URL.createObjectURL(dataBlob)
     const link = document.createElement('a')
     link.href = url
-    link.download = 'organization-data.md'
+    link.download = fileName
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)
     URL.revokeObjectURL(url)
   }
 
-  const generateMarkdown = (data: Organization): string => {
+  // 1. 組織図ベースのマークダウン生成
+  const generateOrganizationMarkdown = (data: Organization): string => {
     let md = `# ${data.name}\n\n`
     
     md += '## 組織構造\n\n'
@@ -177,6 +215,161 @@ export default function Home() {
     return md
   }
 
+  // 2. 評価関係ベースのマークダウン生成
+  const generateEvaluationMarkdown = (data: Organization): string => {
+    let md = `# ${data.name} - 人事評価関係\n\n`
+    
+    // 評価者ごとのグループ化
+    const evaluatorMap = new Map<string, Employee[]>()
+    
+    data.employees.forEach(emp => {
+      // 評価者を特定
+      let evaluatorId: string | null = emp.evaluatorId || null
+      
+      // カスタム評価者がない場合は、デフォルトの組織階層から判定
+      if (!evaluatorId) {
+        // 本部直轄の場合は本部長が評価者
+        if (emp.section === '') {
+          const dept = data.departments.find(d => d.name === emp.department)
+          if (dept && dept.managerId !== emp.id) {
+            evaluatorId = dept.managerId
+          }
+        }
+        // 部直轄の場合は部長が評価者
+        else if (!emp.course) {
+          data.departments.forEach(dept => {
+            const section = dept.sections.find(s => s.name === emp.section)
+            if (section && section.managerId !== emp.id) {
+              evaluatorId = section.managerId
+            }
+          })
+        }
+        // 課所属の場合は課長が評価者
+        else {
+          data.departments.forEach(dept => {
+            dept.sections.forEach(section => {
+              const course = section.courses.find(c => c.name === emp.course)
+              if (course && course.managerId !== emp.id) {
+                evaluatorId = course.managerId
+              }
+            })
+          })
+        }
+      }
+      
+      if (evaluatorId) {
+        if (!evaluatorMap.has(evaluatorId)) {
+          evaluatorMap.set(evaluatorId, [])
+        }
+        evaluatorMap.get(evaluatorId)!.push(emp)
+      }
+    })
+    
+    md += '## 評価者別の被評価者一覧\n\n'
+    
+    // 評価者ごとに出力
+    evaluatorMap.forEach((evaluees, evaluatorId) => {
+      const evaluator = data.employees.find(emp => emp.id === evaluatorId)
+      if (evaluator) {
+        md += `### ${evaluator.name}（${evaluator.position}）\n`
+        md += `**所属**: ${evaluator.department} / ${evaluator.section || '本部直轄'}`
+        if (evaluator.course) md += ` / ${evaluator.course}`
+        md += '\n\n'
+        
+        md += '**被評価者:**\n'
+        evaluees.forEach(evaluee => {
+          const isCustom = evaluee.evaluatorId ? ' ※カスタム評価' : ''
+          md += `- ${evaluee.name}（${evaluee.position}）`
+          md += ` - ${evaluee.department} / ${evaluee.section || '本部直轄'}`
+          if (evaluee.course) md += ` / ${evaluee.course}`
+          md += `${isCustom}\n`
+        })
+        md += '\n'
+      }
+    })
+    
+    md += '## 評価関係の統計\n\n'
+    md += `- **総社員数**: ${data.employees.length}名\n`
+    md += `- **評価者数**: ${evaluatorMap.size}名\n`
+    
+    let customEvaluationCount = 0
+    data.employees.forEach(emp => {
+      if (emp.evaluatorId) customEvaluationCount++
+    })
+    md += `- **カスタム評価関係**: ${customEvaluationCount}件\n`
+    
+    md += '\n---\n'
+    md += `*エクスポート日時: ${new Date().toLocaleString('ja-JP')}*\n`
+    
+    return md
+  }
+
+  // 3. CSV形式のデータ生成
+  const generateCSV = (data: Organization): string => {
+    const headers = [
+      '社員ID', '氏名', '役職', '本部', '部', '課', 'メール', '電話番号', 
+      '入社日', '生年月日', '評価者ID', '評価者名', '評価者役職', '評価者所属', '評価関係タイプ'
+    ]
+    
+    let csv = headers.join(',') + '\n'
+    
+    data.employees.forEach(emp => {
+      // 評価者情報を取得
+      let evaluatorId = emp.evaluatorId || null
+      const evaluationType = emp.evaluatorId ? 'カスタム' : 'デフォルト'
+      
+      // デフォルト評価者を特定
+      if (!evaluatorId) {
+        if (emp.section === '') {
+          const dept = data.departments.find(d => d.name === emp.department)
+          if (dept && dept.managerId !== emp.id) {
+            evaluatorId = dept.managerId
+          }
+        } else if (!emp.course) {
+          data.departments.forEach(dept => {
+            const section = dept.sections.find(s => s.name === emp.section)
+            if (section && section.managerId !== emp.id) {
+              evaluatorId = section.managerId
+            }
+          })
+        } else {
+          data.departments.forEach(dept => {
+            dept.sections.forEach(section => {
+              const course = section.courses.find(c => c.name === emp.course)
+              if (course && course.managerId !== emp.id) {
+                evaluatorId = course.managerId
+              }
+            })
+          })
+        }
+      }
+      
+      const evaluator = evaluatorId ? data.employees.find(e => e.id === evaluatorId) : null
+      
+      const row = [
+        emp.employeeId,
+        emp.name,
+        emp.position,
+        emp.department,
+        emp.section || '',
+        emp.course || '',
+        emp.email,
+        emp.phone,
+        emp.joinDate,
+        emp.birthDate,
+        evaluatorId || '',
+        evaluator ? evaluator.name : '',
+        evaluator ? evaluator.position : '',
+        evaluator ? `${evaluator.department} / ${evaluator.section || '本部直轄'}${evaluator.course ? ` / ${evaluator.course}` : ''}` : '',
+        evaluationType
+      ]
+      
+      csv += `"${row.join('","')}"\n`
+    })
+    
+    return csv
+  }
+
   const importData = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     if (file) {
@@ -186,7 +379,7 @@ export default function Home() {
           const importedData = JSON.parse(e.target?.result as string)
           setOrganizationData(importedData)
           alert('データを正常に読み込みました。')
-        } catch (error) {
+        } catch {
           alert('ファイルの読み込みに失敗しました。正しいJSONファイルを選択してください。')
         }
       }
@@ -243,13 +436,70 @@ export default function Home() {
               <FaEdit className="w-4 h-4" />
               {isEditMode ? '表示モード' : '編集モード'}
             </button>
-            <button
-              onClick={exportData}
-              className="px-4 py-2 bg-gray-600 text-white rounded text-sm font-medium hover:bg-gray-700 transition-colors flex items-center gap-2"
-            >
-              <FaDownload className="w-4 h-4" />
-              エクスポート
-            </button>
+            <div className="relative" ref={exportMenuRef}>
+              <button
+                onClick={() => setShowExportMenu(!showExportMenu)}
+                className="px-4 py-2 bg-gray-600 text-white rounded text-sm font-medium hover:bg-gray-700 transition-colors flex items-center gap-2"
+              >
+                <FaDownload className="w-4 h-4" />
+                エクスポート
+                <FaChevronDown className="w-3 h-3" />
+              </button>
+              
+              {showExportMenu && (
+                <div className="absolute right-0 mt-2 w-64 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
+                  <div className="py-2">
+                    <button
+                      onClick={() => {
+                        exportData('organization-md')
+                        setShowExportMenu(false)
+                      }}
+                      className="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 flex items-start gap-3"
+                    >
+                      <div className="flex-shrink-0 mt-0.5">
+                        <span className="inline-block w-2 h-2 bg-blue-500 rounded-full"></span>
+                      </div>
+                      <div>
+                        <div className="font-medium">組織図（Markdown）</div>
+                        <div className="text-xs text-gray-500 mt-1">組織構造に沿ったデータ出力</div>
+                      </div>
+                    </button>
+                    
+                    <button
+                      onClick={() => {
+                        exportData('evaluation-md')
+                        setShowExportMenu(false)
+                      }}
+                      className="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 flex items-start gap-3"
+                    >
+                      <div className="flex-shrink-0 mt-0.5">
+                        <span className="inline-block w-2 h-2 bg-green-500 rounded-full"></span>
+                      </div>
+                      <div>
+                        <div className="font-medium">評価関係（Markdown）</div>
+                        <div className="text-xs text-gray-500 mt-1">評価者と被評価者の関係データ</div>
+                      </div>
+                    </button>
+                    
+                    <button
+                      onClick={() => {
+                        exportData('csv')
+                        setShowExportMenu(false)
+                      }}
+                      className="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 flex items-start gap-3"
+                    >
+                      <div className="flex-shrink-0 mt-0.5">
+                        <span className="inline-block w-2 h-2 bg-orange-500 rounded-full"></span>
+                      </div>
+                      <div>
+                        <div className="font-medium">統合データ（CSV）</div>
+                        <div className="text-xs text-gray-500 mt-1">組織図と評価関係を含む全データ</div>
+                      </div>
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
             <label className="px-4 py-2 bg-orange-600 text-white rounded text-sm font-medium hover:bg-orange-700 transition-colors cursor-pointer flex items-center gap-2">
               <FaUpload className="w-4 h-4" />
               インポート

@@ -10,6 +10,7 @@ export interface Employee {
   employeeId: string
   joinDate: string
   birthDate: string
+  evaluatorId?: string // 評価者のID（任意）
 }
 
 export interface Department {

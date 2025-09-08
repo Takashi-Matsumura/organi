@@ -212,6 +212,7 @@ export function DndOrganizationChart({ organization, onDataUpdate }: DndOrganiza
           onClose={closeModal}
           organization={organization}
           onUpdateEmployee={handleEmployeeUpdate}
+          onUpdateOrganization={onDataUpdate}
         />
       </div>
     </DndProvider>

@@ -3,5 +3,14 @@
   "framework": "nextjs",
   "outputDirectory": ".next",
   "installCommand": "npm install",
-  "devCommand": "npm run dev"
+  "devCommand": "npm run dev",
+  "functions": {
+    "app/api/**/*.ts": {
+      "maxDuration": 10
+    }
+  },
+  "regions": ["nrt1"],
+  "env": {
+    "NODE_ENV": "production"
+  }
 }

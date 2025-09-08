@@ -157,6 +157,7 @@ export function OrganizationChart({ organization, onDataUpdate }: OrganizationCh
         onClose={closeModal}
         organization={organization}
         onUpdateEmployee={handleEmployeeUpdate}
+        onUpdateOrganization={onDataUpdate}
       />
     </div>
   )

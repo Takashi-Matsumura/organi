@@ -486,7 +486,8 @@
       "phone": "090-1111-0025",
       "employeeId": "E025",
       "joinDate": "2020-04-01",
-      "birthDate": "1988-05-17"
+      "birthDate": "1988-05-17",
+      "evaluatorId": "emp3"
     },
     {
       "id": "emp26",
