@@ -1,0 +1,13 @@
+# Vercelignore - 不要なファイルを除外
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Development files
+.vscode
+.idea
+
+# OS files
+.DS_Store
+Thumbs.db

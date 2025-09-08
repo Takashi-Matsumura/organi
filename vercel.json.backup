@@ -1,0 +1,8 @@
+{
+  "functions": {
+    "app/api/organization/route.ts": {
+      "maxDuration": 10
+    }
+  },
+  "regions": ["nrt1"]
+}
