@@ -1,103 +1,283 @@
-import Image from "next/image";
+'use client'
+
+import { useState, useEffect } from 'react'
+import { OrganizationChart } from '../components/OrganizationChart'
+import { DndOrganizationChart } from '../components/DndOrganizationChart'
+import { Organization } from '../types/organization'
+import { FaEdit, FaDownload, FaUpload } from 'react-icons/fa'
+
+const loadOrganizationData = async (): Promise<Organization> => {
+  try {
+    const response = await fetch('/api/organization')
+    if (!response.ok) {
+      throw new Error('データファイルの読み込みに失敗しました')
+    }
+    return await response.json()
+  } catch (error) {
+    console.error('組織データの読み込みエラー:', error)
+    throw error
+  }
+}
+
+const saveOrganizationData = async (data: Organization): Promise<void> => {
+  try {
+    const response = await fetch('/api/organization', {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    })
+    
+    if (!response.ok) {
+      const errorData = await response.json()
+      throw new Error(errorData.error || 'データの保存に失敗しました')
+    }
+    
+    console.log('組織データが正常に保存されました')
+  } catch (error) {
+    console.error('組織データの保存エラー:', error)
+    throw error
+  }
+}
 
 export default function Home() {
-  return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  const [organizationData, setOrganizationData] = useState<Organization | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [isEditMode, setIsEditMode] = useState(false)
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+  useEffect(() => {
+    const initializeData = async () => {
+      try {
+        const data = await loadOrganizationData()
+        setOrganizationData(data)
+      } catch {
+        setError('組織データの読み込みに失敗しました。ページを再読み込みしてください。')
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    initializeData()
+  }, [])
+
+  const handleDataUpdate = async (newData: Organization) => {
+    try {
+      setOrganizationData(newData)
+      await saveOrganizationData(newData)
+    } catch (error) {
+      console.error('データ更新エラー:', error)
+      alert('データの保存に失敗しました。再試行してください。')
+    }
+  }
+
+  const toggleEditMode = () => {
+    setIsEditMode(!isEditMode)
+  }
+
+  const exportData = () => {
+    if (!organizationData) return
+    const markdownContent = generateMarkdown(organizationData)
+    const dataBlob = new Blob([markdownContent], { type: 'text/markdown' })
+    const url = URL.createObjectURL(dataBlob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = 'organization-data.md'
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    URL.revokeObjectURL(url)
+  }
+
+  const generateMarkdown = (data: Organization): string => {
+    let md = `# ${data.name}\n\n`
+    
+    md += '## 組織構造\n\n'
+    
+    data.departments.forEach((department) => {
+      md += `### ${department.name}\n`
+      md += `- **本部長**: ${department.manager}\n`
+      
+      // 本部長直下の社員
+      const departmentEmployees = data.employees.filter(emp => 
+        emp.department === department.name && 
+        emp.section === '' &&
+        emp.id !== department.managerId
+      )
+      
+      if (departmentEmployees.length > 0) {
+        md += '\n#### 本部直轄\n'
+        departmentEmployees.forEach((emp) => {
+          md += `- ${emp.name}${emp.position ? `（${emp.position}）` : ''}\n`
+        })
+        md += '\n'
+      }
+      
+      department.sections.forEach((section) => {
+        md += `\n#### ${section.name}\n`
+        md += `- **部長**: ${section.manager}\n`
+        
+        if (section.courses.length > 0) {
+          // 課がある場合
+          section.courses.forEach((course) => {
+            md += `\n##### ${course.name}\n`
+            md += `- **課長**: ${course.manager}\n`
+            
+            const courseEmployees = data.employees.filter(emp => 
+              emp.department === department.name && 
+              emp.section === section.name && 
+              emp.course === course.name &&
+              emp.id !== course.managerId
+            )
+            
+            if (courseEmployees.length > 0) {
+              md += '\n**メンバー:**\n'
+              courseEmployees.forEach((emp) => {
+                md += `- ${emp.name}${emp.position ? `（${emp.position}）` : ''}\n`
+              })
+            }
+            md += '\n'
+          })
+        } else {
+          // 課がない部の場合
+          const sectionEmployees = data.employees.filter(emp => 
+            emp.department === department.name && 
+            emp.section === section.name && 
+            !emp.course &&
+            emp.id !== section.managerId
+          )
+          
+          if (sectionEmployees.length > 0) {
+            md += '\n**メンバー:**\n'
+            sectionEmployees.forEach((emp) => {
+              md += `- ${emp.name}${emp.position ? `（${emp.position}）` : ''}\n`
+            })
+          }
+          md += '\n'
+        }
+      })
+      
+      md += '\n'
+    })
+    
+    // 社員一覧
+    md += '## 社員一覧\n\n'
+    md += '| 社員ID | 名前 | 部署 | 部 | 課 | 役職 | メール | 電話番号 | 入社日 | 生年月日 |\n'
+    md += '|--------|------|------|-----|-----|------|-------|---------|----------|-----------|\n'
+    
+    data.employees.forEach((emp) => {
+      md += `| ${emp.employeeId} | ${emp.name} | ${emp.department} | ${emp.section || '-'} | ${emp.course || '-'} | ${emp.position} | ${emp.email} | ${emp.phone} | ${emp.joinDate} | ${emp.birthDate} |\n`
+    })
+    
+    md += '\n\n'
+    md += '---\n'
+    md += `*エクスポート日時: ${new Date().toLocaleString('ja-JP')}*\n`
+    
+    return md
+  }
+
+  const importData = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (file) {
+      const reader = new FileReader()
+      reader.onload = (e) => {
+        try {
+          const importedData = JSON.parse(e.target?.result as string)
+          setOrganizationData(importedData)
+          alert('データを正常に読み込みました。')
+        } catch (error) {
+          alert('ファイルの読み込みに失敗しました。正しいJSONファイルを選択してください。')
+        }
+      }
+      reader.readAsText(file)
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">データを読み込んでいます...</p>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
+      </div>
+    )
+  }
+
+  if (error || !organizationData) {
+    return (
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-red-600 text-6xl mb-4">⚠️</div>
+          <h2 className="text-xl font-bold text-gray-800 mb-2">エラーが発生しました</h2>
+          <p className="text-gray-600 mb-4">{error}</p>
+          <button 
+            onClick={() => window.location.reload()}
+            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+          >
+            ページを再読み込み
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-100">
+      {/* ツールバー */}
+      <div className="bg-white border-b shadow-sm p-4">
+        <div className="max-w-4xl mx-auto flex items-center justify-between">
+          <h1 className="text-xl font-bold text-gray-800">
+            {organizationData.name} - 組織データ管理
+          </h1>
+          <div className="flex items-center gap-4">
+            <button
+              onClick={toggleEditMode}
+              className={`px-4 py-2 rounded text-sm font-medium transition-colors flex items-center gap-2 ${
+                isEditMode
+                  ? 'bg-green-600 text-white hover:bg-green-700'
+                  : 'bg-blue-600 text-white hover:bg-blue-700'
+              }`}
+            >
+              <FaEdit className="w-4 h-4" />
+              {isEditMode ? '表示モード' : '編集モード'}
+            </button>
+            <button
+              onClick={exportData}
+              className="px-4 py-2 bg-gray-600 text-white rounded text-sm font-medium hover:bg-gray-700 transition-colors flex items-center gap-2"
+            >
+              <FaDownload className="w-4 h-4" />
+              エクスポート
+            </button>
+            <label className="px-4 py-2 bg-orange-600 text-white rounded text-sm font-medium hover:bg-orange-700 transition-colors cursor-pointer flex items-center gap-2">
+              <FaUpload className="w-4 h-4" />
+              インポート
+              <input
+                type="file"
+                accept=".json"
+                onChange={importData}
+                className="hidden"
+              />
+            </label>
+          </div>
+        </div>
+      </div>
+
+      {/* メインコンテンツ */}
+      <div className="p-6">
+        {isEditMode ? (
+          <DndOrganizationChart 
+            organization={organizationData} 
+            onDataUpdate={handleDataUpdate}
           />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
+        ) : (
+          <OrganizationChart 
+            organization={organizationData} 
+            onDataUpdate={handleDataUpdate}
           />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+        )}
+      </div>
     </div>
-  );
+  )
 }
