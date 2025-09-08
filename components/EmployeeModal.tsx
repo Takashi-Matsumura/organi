@@ -45,79 +45,63 @@ export function EmployeeModal({ employee, isOpen, onClose, organization, onUpdat
 
   // 1次評価対象者を取得（カスタム評価関係を考慮）
   const getDirectEvaluees = (): Employee[] => {
-    // カスタム評価関係がある場合はそれを優先
-    const customEvaluees = organization.employees.filter(emp => emp.evaluatorId === employee.id)
-    if (customEvaluees.length > 0) {
-      return customEvaluees
-    }
-    
-    // デフォルトの組織階層による評価関係
     const evaluees: Employee[] = []
     
-    // 本部長の場合：直属の部下と部長を評価
-    const managedDepartment = organization.departments.find(dept => dept.managerId === employee.id)
-    if (managedDepartment) {
-      // 直属の部下（本部直轄）
-      const directSubordinates = organization.employees.filter(emp => 
-        emp.department === managedDepartment.name && 
-        emp.section === '' &&
-        emp.id !== employee.id &&
-        !emp.evaluatorId // カスタム評価者が設定されていない場合のみ
-      )
-      evaluees.push(...directSubordinates)
+    // 全社員を対象に、この管理職（employee）が評価者となる社員を特定
+    organization.employees.forEach(emp => {
+      if (emp.id === employee.id) return // 自分自身は除外
       
-      // 部長たち
-      managedDepartment.sections.forEach(section => {
-        const sectionManager = organization.employees.find(emp => 
-          emp.id === section.managerId && !emp.evaluatorId
-        )
-        if (sectionManager) {
-          evaluees.push(sectionManager)
-        }
-      })
-    }
-    
-    // 部長の場合：直属の部下と課長を評価
-    organization.departments.forEach(dept => {
-      const managedSection = dept.sections.find(section => section.managerId === employee.id)
-      if (managedSection) {
-        // 直属の部下（部直轄）
-        const directSubordinates = organization.employees.filter(emp => 
-          emp.department === dept.name && 
-          emp.section === managedSection.name && 
-          !emp.course &&
-          emp.id !== employee.id &&
-          !emp.evaluatorId
-        )
-        evaluees.push(...directSubordinates)
-        
-        // 課長たち
-        managedSection.courses.forEach(course => {
-          const courseManager = organization.employees.find(emp => 
-            emp.id === course.managerId && !emp.evaluatorId
-          )
-          if (courseManager) {
-            evaluees.push(courseManager)
+      // その社員の実際の評価者を特定
+      let actualEvaluatorId: string | null = null
+      
+      // 1. カスタム評価者が設定されている場合はそれを優先
+      if (emp.evaluatorId) {
+        actualEvaluatorId = emp.evaluatorId
+      } else {
+        // 2. デフォルトの組織階層から評価者を決定
+        if (emp.section === '') {
+          // 本部直轄の場合は本部長が評価者
+          const dept = organization.departments.find(d => d.name === emp.department)
+          if (dept) {
+            actualEvaluatorId = dept.managerId
           }
-        })
-      }
-    })
-    
-    // 課長の場合：直属の課員を評価
-    organization.departments.forEach(dept => {
-      dept.sections.forEach(section => {
-        const managedCourse = section.courses.find(course => course.managerId === employee.id)
-        if (managedCourse) {
-          const courseMembers = organization.employees.filter(emp => 
-            emp.department === dept.name && 
-            emp.section === section.name && 
-            emp.course === managedCourse.name &&
-            emp.id !== employee.id &&
-            !emp.evaluatorId
-          )
-          evaluees.push(...courseMembers)
+        } else if (!emp.course) {
+          // 部所属の場合
+          organization.departments.forEach(dept => {
+            const section = dept.sections.find(s => s.name === emp.section)
+            if (section) {
+              // 部長自身の場合は本部長が評価者
+              if (emp.id === section.managerId) {
+                actualEvaluatorId = dept.managerId
+              } else {
+                // 部の一般社員の場合は部長が評価者
+                actualEvaluatorId = section.managerId
+              }
+            }
+          })
+        } else {
+          // 課所属の場合
+          organization.departments.forEach(dept => {
+            dept.sections.forEach(section => {
+              const course = section.courses.find(c => c.name === emp.course)
+              if (course) {
+                // 課長自身の場合は部長が評価者
+                if (emp.id === course.managerId) {
+                  actualEvaluatorId = section.managerId
+                } else {
+                  // 課の一般社員の場合は課長が評価者
+                  actualEvaluatorId = course.managerId
+                }
+              }
+            })
+          })
         }
-      })
+      }
+      
+      // この管理職が評価者の場合は被評価者リストに追加
+      if (actualEvaluatorId === employee.id) {
+        evaluees.push(emp)
+      }
     })
     
     return evaluees
