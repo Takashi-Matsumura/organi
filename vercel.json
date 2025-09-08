@@ -1,3 +1,7 @@
 {
-  "regions": ["nrt1"]
+  "functions": {
+    "app/api/organization/route.ts": {
+      "maxDuration": 10
+    }
+  }
 }
