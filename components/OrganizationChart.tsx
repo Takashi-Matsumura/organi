@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { Accordion } from './Accordion'
 import { EmployeeModal } from './EmployeeModal'
 import { Organization, Employee } from '../types/organization'
+import { FaFilter, FaTimes } from 'react-icons/fa'
 
 interface OrganizationChartProps {
   organization: Organization
@@ -13,6 +14,9 @@ interface OrganizationChartProps {
 export function OrganizationChart({ organization, onDataUpdate }: OrganizationChartProps) {
   const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [searchTerm, setSearchTerm] = useState('')
+  const [selectedDepartment, setSelectedDepartment] = useState('')
+  const [selectedPosition, setSelectedPosition] = useState('')
 
   const handleEmployeeClick = (employeeId: string) => {
     const employee = organization.employees.find(emp => emp.id === employeeId)
@@ -40,17 +44,129 @@ export function OrganizationChart({ organization, onDataUpdate }: OrganizationCh
     setSelectedEmployee(updatedEmployee)
   }
 
+  const clearFilters = () => {
+    setSearchTerm('')
+    setSelectedDepartment('')
+    setSelectedPosition('')
+  }
+
+  const hasActiveFilters = Boolean(searchTerm || selectedDepartment || selectedPosition)
+
+  // フィルター適用
+  const filteredEmployees = organization.employees.filter(emp => {
+    if (searchTerm && !emp.name.toLowerCase().includes(searchTerm.toLowerCase())) {
+      return false
+    }
+    if (selectedDepartment && emp.department !== selectedDepartment) {
+      return false
+    }
+    if (selectedPosition && emp.position !== selectedPosition) {
+      return false
+    }
+    return true
+  })
+
+  // フィルターされた社員のIDセット
+  const filteredEmployeeIds = new Set(filteredEmployees.map(emp => emp.id))
+
+  // 利用可能な役職を取得
+  const availablePositions = Array.from(new Set(organization.employees.map(emp => emp.position))).sort()
+
   return (
     <div className="max-w-4xl mx-auto p-6">
-      <h1 className="text-2xl font-bold mb-6 text-gray-800">{organization.name}</h1>
+      {/* フィルターセクション */}
+      <div className="mb-6 p-4 bg-gray-50 border border-gray-200 rounded-lg">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-semibold text-gray-800 flex items-center">
+            <FaFilter className="mr-2 text-blue-600" />
+            フィルター
+          </h2>
+          {hasActiveFilters && (
+            <button
+              onClick={clearFilters}
+              className="flex items-center text-sm text-gray-600 hover:text-red-600 transition-colors"
+            >
+              <FaTimes className="mr-1" size={12} />
+              クリア
+            </button>
+          )}
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {/* 名前検索 */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">名前検索</label>
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="社員名を入力..."
+              className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+            />
+          </div>
+          
+          {/* 部門フィルター */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">部門</label>
+            <select
+              value={selectedDepartment}
+              onChange={(e) => setSelectedDepartment(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+            >
+              <option value="">すべて</option>
+              {organization.departments.map((dept) => (
+                <option key={dept.id} value={dept.name}>
+                  {dept.name}
+                </option>
+              ))}
+            </select>
+          </div>
+          
+          {/* 役職フィルター */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">役職</label>
+            <select
+              value={selectedPosition}
+              onChange={(e) => setSelectedPosition(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+            >
+              <option value="">すべて</option>
+              {availablePositions.map((position) => (
+                <option key={position} value={position}>
+                  {position}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+        
+        {hasActiveFilters && (
+          <div className="mt-4 text-sm text-gray-600">
+            {filteredEmployees.length}名の社員が条件に一致
+          </div>
+        )}
+      </div>
       
       {organization.departments.map((department) => {
         // 本部長直下の社員を取得（部門長預かり）
         const departmentEmployees = organization.employees.filter(emp => 
           emp.department === department.name && 
           emp.section === '' &&
-          emp.id !== department.managerId
+          emp.id !== department.managerId &&
+          (!hasActiveFilters || filteredEmployeeIds.has(emp.id))
         )
+        
+        // 部門内にフィルター条件に一致する社員がいるかチェック
+        const hasDepartmentMatch = !hasActiveFilters || 
+          filteredEmployeeIds.has(department.managerId) ||
+          organization.employees.some(emp => 
+            emp.department === department.name && 
+            filteredEmployeeIds.has(emp.id)
+          )
+        
+        if (hasActiveFilters && !hasDepartmentMatch) {
+          return null
+        }
         
         return (
           <Accordion 
@@ -59,6 +175,7 @@ export function OrganizationChart({ organization, onDataUpdate }: OrganizationCh
             level={0}
             onManagerClick={() => handleEmployeeClick(department.managerId)}
             managerId={department.managerId}
+            forceOpen={hasActiveFilters}
           >
             {/* 本部長直下の社員がいる場合は表示 */}
             {departmentEmployees.length > 0 && (
@@ -85,8 +202,22 @@ export function OrganizationChart({ organization, onDataUpdate }: OrganizationCh
               emp.department === department.name && 
               emp.section === section.name && 
               !emp.course &&
-              emp.id !== section.managerId
+              emp.id !== section.managerId &&
+              (!hasActiveFilters || filteredEmployeeIds.has(emp.id))
             )
+            
+            // 部内にフィルター条件に一致する社員がいるかチェック
+            const hasSectionMatch = !hasActiveFilters || 
+              filteredEmployeeIds.has(section.managerId) ||
+              organization.employees.some(emp => 
+                emp.department === department.name && 
+                emp.section === section.name && 
+                filteredEmployeeIds.has(emp.id)
+              )
+            
+            if (hasActiveFilters && !hasSectionMatch) {
+              return null
+            }
             
             return (
               <Accordion 
@@ -95,6 +226,7 @@ export function OrganizationChart({ organization, onDataUpdate }: OrganizationCh
                 level={1}
                 onManagerClick={() => handleEmployeeClick(section.managerId)}
                 managerId={section.managerId}
+                forceOpen={hasActiveFilters}
               >
                 {section.courses.length > 0 ? (
                   // 課がある場合の表示
@@ -103,8 +235,23 @@ export function OrganizationChart({ organization, onDataUpdate }: OrganizationCh
                       emp.department === department.name && 
                       emp.section === section.name && 
                       emp.course === course.name &&
-                      emp.id !== course.managerId
+                      emp.id !== course.managerId &&
+                      (!hasActiveFilters || filteredEmployeeIds.has(emp.id))
                     )
+                    
+                    // 課内にフィルター条件に一致する社員がいるかチェック
+                    const hasCourseMatch = !hasActiveFilters || 
+                      filteredEmployeeIds.has(course.managerId) ||
+                      organization.employees.some(emp => 
+                        emp.department === department.name && 
+                        emp.section === section.name && 
+                        emp.course === course.name &&
+                        filteredEmployeeIds.has(emp.id)
+                      )
+                    
+                    if (hasActiveFilters && !hasCourseMatch) {
+                      return null
+                    }
                     
                     return (
                       <Accordion
@@ -113,6 +260,7 @@ export function OrganizationChart({ organization, onDataUpdate }: OrganizationCh
                         level={2}
                         onManagerClick={() => handleEmployeeClick(course.managerId)}
                         managerId={course.managerId}
+                        forceOpen={hasActiveFilters}
                       >
                         <div className="grid grid-cols-3 gap-2 mt-2">
                           {courseEmployees.map((employee) => (

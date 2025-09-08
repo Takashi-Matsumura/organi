@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { IoChevronForward } from 'react-icons/io5'
+import { FaBuilding, FaUsers, FaUserTie } from 'react-icons/fa'
 
 interface AccordionProps {
   title: string | React.ReactNode
@@ -10,10 +11,14 @@ interface AccordionProps {
   level?: number
   onManagerClick?: () => void
   managerId?: string
+  forceOpen?: boolean
 }
 
-export function Accordion({ title, children, defaultOpen = false, level = 0, onManagerClick, managerId }: AccordionProps) {
+export function Accordion({ title, children, defaultOpen = false, level = 0, onManagerClick, managerId, forceOpen = false }: AccordionProps) {
   const [isOpen, setIsOpen] = useState(defaultOpen)
+  
+  // フィルター条件に応じて強制展開
+  const shouldBeOpen = forceOpen || isOpen
   
   const paddingClass = level === 0 ? 'pl-4' : level === 1 ? 'pl-8' : level === 2 ? 'pl-12' : 'pl-16'
   const bgColorClass = level === 0 ? 'bg-blue-50' : level === 1 ? 'bg-green-50' : level === 2 ? 'bg-yellow-50' : 'bg-purple-50'
@@ -31,6 +36,15 @@ export function Accordion({ title, children, defaultOpen = false, level = 0, onM
     setIsOpen(!isOpen)
   }
 
+  const getIconForLevel = () => {
+    switch (level) {
+      case 0: return <FaBuilding className="text-blue-600 mr-2" size={16} />
+      case 1: return <FaUsers className="text-green-600 mr-2" size={16} />
+      case 2: return <FaUserTie className="text-yellow-600 mr-2" size={16} />
+      default: return null
+    }
+  }
+
   const renderTitle = () => {
     if (typeof title === 'string' && onManagerClick && managerId) {
       const parts = title.match(/^(.+)（(.+)）$/)
@@ -38,6 +52,7 @@ export function Accordion({ title, children, defaultOpen = false, level = 0, onM
         const [, groupName, managerName] = parts
         return (
           <div className="font-medium text-gray-800 flex items-center">
+            {getIconForLevel()}
             <span>{groupName}（</span>
             <span 
               className="manager-name text-blue-600 hover:text-blue-800 underline cursor-pointer"
@@ -53,7 +68,12 @@ export function Accordion({ title, children, defaultOpen = false, level = 0, onM
         )
       }
     }
-    return <div className="font-medium text-gray-800">{title}</div>
+    return (
+      <div className="font-medium text-gray-800 flex items-center">
+        {getIconForLevel()}
+        {title}
+      </div>
+    )
   }
 
   return (
@@ -64,11 +84,11 @@ export function Accordion({ title, children, defaultOpen = false, level = 0, onM
       >
         {renderTitle()}
         <IoChevronForward 
-          className={`transform transition-transform duration-200 mr-4 text-gray-600 ${isOpen ? 'rotate-90' : ''}`}
+          className={`transform transition-transform duration-200 mr-4 text-gray-600 ${shouldBeOpen ? 'rotate-90' : ''}`}
           size={16}
         />
       </button>
-      {isOpen && (
+      {shouldBeOpen && (
         <div className="p-4 bg-white">
           {children}
         </div>
