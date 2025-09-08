@@ -86,7 +86,7 @@ bun dev
 
 ### ワンクリックデプロイ
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/your-username/organi)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/Takashi-Matsumura/organi)
 
 ### 手動デプロイ手順
 
@@ -100,7 +100,7 @@ bun dev
    git add .
    git commit -m "Initial commit"
    git branch -M main
-   git remote add origin https://github.com/your-username/organi.git
+   git remote add origin https://github.com/Takashi-Matsumura/organi.git
    git push -u origin main
    ```
 
@@ -325,6 +325,13 @@ Tailwind CSSクラスを使用してUIをカスタマイズ
 ## 📄 ライセンス
 
 This project is licensed under the MIT License.
+
+## ✅ 自動デプロイメントのテスト
+
+このセクションは、Vercelの自動デプロイメント機能をテストするために追加されました。
+GitHubにプッシュされた変更が自動的にVercelでビルドおよびデプロイされることを確認します。
+
+更新日時: 2025年9月9日
 
 ## 👨‍💻 作者
 
