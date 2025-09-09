@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Organi - 組織図管理アプリ",
-  description: "組織図管理アプリ",
+  title: "ORGANI - 組織管理アプリ",
+  description: "組織管理アプリ",
 };
 
 export default function RootLayout({

@@ -3,8 +3,10 @@
 import { useState, useEffect, useRef } from 'react'
 import { OrganizationChart } from '../components/OrganizationChart'
 import { DndOrganizationChart } from '../components/DndOrganizationChart'
+import { ApiKeyInput } from '../components/ApiKeyInput'
 import { Organization, Employee } from '../types/organization'
-import { FaEdit, FaDownload, FaUpload, FaChevronDown } from 'react-icons/fa'
+import { useApiAuth } from '../hooks/useApiAuth'
+import { FaEdit, FaDownload, FaUpload, FaChevronDown, FaSignOutAlt } from 'react-icons/fa'
 
 const loadOrganizationData = async (): Promise<Organization> => {
   try {
@@ -48,6 +50,8 @@ export default function Home() {
   const [isEditMode, setIsEditMode] = useState(false)
   const [showExportMenu, setShowExportMenu] = useState(false)
   const exportMenuRef = useRef<HTMLDivElement>(null)
+  
+  const { isAuthenticated, canWrite, canDelete, role, logout } = useApiAuth()
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -416,34 +420,50 @@ export default function Home() {
     )
   }
 
+  // 認証されていない場合のレンダリング
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+        <div className="bg-white rounded-lg shadow-xl p-8 max-w-md w-full mx-4">
+          <div className="text-center mb-6">
+            <h1 className="text-2xl font-bold text-gray-800 mb-2">ORGANI</h1>
+            <p className="text-gray-600">組織管理アプリ</p>
+          </div>
+          <ApiKeyInput />
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen bg-gray-100">
       {/* ツールバー */}
       <div className="bg-white border-b shadow-sm p-4">
         <div className="max-w-4xl mx-auto flex items-center justify-between">
           <h1 className="text-xl font-bold text-gray-800">
-            {organizationData.name} - 組織データ管理
+            ORGANI - 組織管理アプリ
           </h1>
-          <div className="flex items-center gap-4">
-            <button
-              onClick={toggleEditMode}
-              className={`px-4 py-2 rounded text-sm font-medium transition-colors flex items-center gap-2 ${
-                isEditMode
-                  ? 'bg-green-600 text-white hover:bg-green-700'
-                  : 'bg-blue-600 text-white hover:bg-blue-700'
-              }`}
-            >
-              <FaEdit className="w-4 h-4" />
-              {isEditMode ? '表示モード' : '編集モード'}
-            </button>
+          <div className="flex items-center gap-2">
+            {canWrite() && (
+              <button
+                onClick={toggleEditMode}
+                className={`p-2 rounded transition-colors ${
+                  isEditMode
+                    ? 'bg-green-600 text-white hover:bg-green-700'
+                    : 'bg-blue-600 text-white hover:bg-blue-700'
+                }`}
+                title={isEditMode ? '表示モード' : '編集モード'}
+              >
+                <FaEdit className="w-4 h-4" />
+              </button>
+            )}
             <div className="relative" ref={exportMenuRef}>
               <button
                 onClick={() => setShowExportMenu(!showExportMenu)}
-                className="px-4 py-2 bg-gray-600 text-white rounded text-sm font-medium hover:bg-gray-700 transition-colors flex items-center gap-2"
+                className="p-2 bg-gray-600 text-white rounded hover:bg-gray-700 transition-colors"
+                title="エクスポート"
               >
                 <FaDownload className="w-4 h-4" />
-                エクスポート
-                <FaChevronDown className="w-3 h-3" />
               </button>
               
               {showExportMenu && (
@@ -500,9 +520,8 @@ export default function Home() {
                 </div>
               )}
             </div>
-            <label className="px-4 py-2 bg-orange-600 text-white rounded text-sm font-medium hover:bg-orange-700 transition-colors cursor-pointer flex items-center gap-2">
+            <label className="p-2 bg-orange-600 text-white rounded hover:bg-orange-700 transition-colors cursor-pointer" title="インポート">
               <FaUpload className="w-4 h-4" />
-              インポート
               <input
                 type="file"
                 accept=".json"
@@ -510,6 +529,22 @@ export default function Home() {
                 className="hidden"
               />
             </label>
+            <div className="flex items-center gap-2">
+              <div className={`flex items-center px-3 py-1 rounded text-sm ${
+                role === 'ADMIN' ? 'bg-red-50 border-red-200 text-red-600' :
+                role === 'EDITOR' ? 'bg-yellow-50 border-yellow-200 text-yellow-600' :
+                'bg-green-50 border-green-200 text-green-600'
+              } border`}>
+                <span className="font-medium">{role}</span>
+              </div>
+              <button
+                onClick={logout}
+                className="p-2 text-gray-400 hover:text-red-600 rounded hover:bg-gray-100"
+                title="ログアウト"
+              >
+                <FaSignOutAlt size={16} />
+              </button>
+            </div>
           </div>
         </div>
       </div>

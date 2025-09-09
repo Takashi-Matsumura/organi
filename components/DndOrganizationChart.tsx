@@ -8,6 +8,7 @@ import { EmployeeModal } from './EmployeeModal'
 import { DraggableEmployee } from './DraggableEmployee'
 import { DropZone } from './DropZone'
 import { Organization, Employee } from '../types/organization'
+import { useApiAuth } from '../hooks/useApiAuth'
 
 interface DndOrganizationChartProps {
   organization: Organization
@@ -17,6 +18,9 @@ interface DndOrganizationChartProps {
 export function DndOrganizationChart({ organization, onDataUpdate }: DndOrganizationChartProps) {
   const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
+  
+  // APIキー認証
+  const { canWrite, canDelete } = useApiAuth()
 
   const handleEmployeeClick = (employeeId: string) => {
     const employee = organization.employees.find(emp => emp.id === employeeId)

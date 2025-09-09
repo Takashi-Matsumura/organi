@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { Employee, Organization } from '../types/organization'
+import { useApiAuth } from '../hooks/useApiAuth'
 
 interface EmployeeModalProps {
   employee: Employee | null
@@ -23,6 +24,9 @@ export function EmployeeModal({ employee, isOpen, onClose, organization, onUpdat
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 })
   const [position, setPosition] = useState({ x: 0, y: 0 })
   const modalRef = useRef<HTMLDivElement>(null)
+  
+  // APIキー認証
+  const { canWrite } = useApiAuth()
 
   // モーダルが開かれるたびに基本情報タブにリセット
   useEffect(() => {
@@ -262,7 +266,7 @@ export function EmployeeModal({ employee, isOpen, onClose, organization, onUpdat
         >
           <h2 className="text-xl font-bold text-gray-800 pointer-events-none">社員情報</h2>
           <div className="flex items-center gap-2">
-            {activeTab === 'info' && !isEditing && (
+            {activeTab === 'info' && !isEditing && canWrite() && (
               <button
                 onClick={startEditing}
                 className="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 transition-colors"
@@ -270,7 +274,7 @@ export function EmployeeModal({ employee, isOpen, onClose, organization, onUpdat
                 編集
               </button>
             )}
-            {activeTab === 'evaluees' && !isEditingEvaluees && (
+            {activeTab === 'evaluees' && !isEditingEvaluees && canWrite() && (
               <button
                 onClick={startEditingEvaluees}
                 className="px-3 py-1 bg-green-600 text-white text-sm rounded hover:bg-green-700 transition-colors"

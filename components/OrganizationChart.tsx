@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { Accordion } from './Accordion'
 import { EmployeeModal } from './EmployeeModal'
 import { Organization, Employee } from '../types/organization'
+import { useApiAuth } from '../hooks/useApiAuth'
 import { FaFilter, FaTimes } from 'react-icons/fa'
 
 interface OrganizationChartProps {
@@ -17,6 +18,9 @@ export function OrganizationChart({ organization, onDataUpdate }: OrganizationCh
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedDepartment, setSelectedDepartment] = useState('')
   const [selectedPosition, setSelectedPosition] = useState('')
+  
+  // APIキー認証
+  const { canWrite } = useApiAuth()
 
   const handleEmployeeClick = (employeeId: string) => {
     const employee = organization.employees.find(emp => emp.id === employeeId)
@@ -76,12 +80,8 @@ export function OrganizationChart({ organization, onDataUpdate }: OrganizationCh
     <div className="max-w-4xl mx-auto p-6">
       {/* フィルターセクション */}
       <div className="mb-6 p-4 bg-gray-50 border border-gray-200 rounded-lg">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold text-gray-800 flex items-center">
-            <FaFilter className="mr-2 text-blue-600" />
-            フィルター
-          </h2>
-          {hasActiveFilters && (
+        {hasActiveFilters && (
+          <div className="flex justify-end mb-4">
             <button
               onClick={clearFilters}
               className="flex items-center text-sm text-gray-600 hover:text-red-600 transition-colors"
@@ -89,8 +89,8 @@ export function OrganizationChart({ organization, onDataUpdate }: OrganizationCh
               <FaTimes className="mr-1" size={12} />
               クリア
             </button>
-          )}
-        </div>
+          </div>
+        )}
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {/* 名前検索 */}
