@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { Accordion } from './Accordion'
 import { EmployeeModal } from './EmployeeModal'
 import { Organization, Employee } from '../types/organization'
-import { useApiAuth } from '../hooks/useApiAuth'
+import { useTokenAuth } from '../hooks/useTokenAuth'
 import { FaFilter, FaTimes } from 'react-icons/fa'
 
 interface OrganizationChartProps {
@@ -19,8 +19,8 @@ export function OrganizationChart({ organization, onDataUpdate }: OrganizationCh
   const [selectedDepartment, setSelectedDepartment] = useState('')
   const [selectedPosition, setSelectedPosition] = useState('')
   
-  // APIキー認証
-  const { canWrite } = useApiAuth()
+  // アクセスToken認証
+  const { canWrite } = useTokenAuth()
 
   const handleEmployeeClick = (employeeId: string) => {
     const employee = organization.employees.find(emp => emp.id === employeeId)

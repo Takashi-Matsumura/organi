@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { Employee, Organization } from '../types/organization'
-import { useApiAuth } from '../hooks/useApiAuth'
+import { useTokenAuth } from '../hooks/useTokenAuth'
 
 interface EmployeeModalProps {
   employee: Employee | null
@@ -25,8 +25,8 @@ export function EmployeeModal({ employee, isOpen, onClose, organization, onUpdat
   const [position, setPosition] = useState({ x: 0, y: 0 })
   const modalRef = useRef<HTMLDivElement>(null)
   
-  // APIキー認証
-  const { canWrite } = useApiAuth()
+  // アクセスToken認証
+  const { canWrite } = useTokenAuth()
 
   // モーダルが開かれるたびに基本情報タブにリセット
   useEffect(() => {

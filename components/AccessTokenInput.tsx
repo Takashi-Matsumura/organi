@@ -1,41 +1,41 @@
 'use client'
 
 import { useState } from 'react'
-import { useApiAuth } from '../hooks/useApiAuth'
+import { useTokenAuth } from '../hooks/useTokenAuth'
 import { FaKey, FaEye, FaEyeSlash, FaSignOutAlt, FaInfoCircle } from 'react-icons/fa'
 
-export function ApiKeyInput() {
-  const [showKey, setShowKey] = useState(false)
-  const [inputKey, setInputKey] = useState('')
+export function AccessTokenInput() {
+  const [showToken, setShowToken] = useState(false)
+  const [inputToken, setInputToken] = useState('')
   const [showDemo, setShowDemo] = useState(false)
   const [isLoggingIn, setIsLoggingIn] = useState(false)
   
   const { 
-    apiKey, 
+    accessToken, 
     role, 
     isAuthenticated, 
     description,
-    setAuthApiKey, 
+    setAuthAccessToken, 
     logout,
-    getAvailableKeys
-  } = useApiAuth()
+    getAvailableTokens
+  } = useTokenAuth()
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoggingIn(true)
-    setAuthApiKey(inputKey)
-    setInputKey('')
-    // APIキー設定後にページをリロードしてログイン効果を演出
+    setAuthAccessToken(inputToken)
+    setInputToken('')
+    // アクセスToken設定後にページをリロードしてログイン効果を演出
     setTimeout(() => {
       window.location.reload()
     }, 800)
   }
 
-  const handleDemoKeySelect = (key: string) => {
+  const handleDemoTokenSelect = (token: string) => {
     setIsLoggingIn(true)
-    setAuthApiKey(key)
+    setAuthAccessToken(token)
     setShowDemo(false)
-    // デモキー選択後にページをリロードしてログイン効果を演出
+    // デモToken選択後にページをリロードしてログイン効果を演出
     setTimeout(() => {
       window.location.reload()
     }, 800)
@@ -65,23 +65,23 @@ export function ApiKeyInput() {
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center">
             <FaKey className="text-blue-600 mr-2" />
-            <h3 className="text-lg font-semibold text-gray-800">APIキー認証</h3>
+            <h3 className="text-lg font-semibold text-gray-800">アクセスToken認証</h3>
           </div>
           <button
             onClick={() => setShowDemo(!showDemo)}
             className="flex items-center text-sm text-blue-600 hover:text-blue-800"
           >
             <FaInfoCircle className="mr-1" size={12} />
-            デモキー
+            デモToken
           </button>
         </div>
 
         <form onSubmit={handleSubmit} className="flex gap-2">
           <input
             type="text"
-            value={inputKey}
-            onChange={(e) => setInputKey(e.target.value)}
-            placeholder="APIキーを入力してください..."
+            value={inputToken}
+            onChange={(e) => setInputToken(e.target.value)}
+            placeholder="アクセスTokenを入力してください..."
             className="flex-1 px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
             required
           />
@@ -107,16 +107,16 @@ export function ApiKeyInput() {
 
         {showDemo && (
           <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded">
-            <h4 className="text-sm font-medium text-blue-800 mb-2">デモ用APIキー</h4>
+            <h4 className="text-sm font-medium text-blue-800 mb-2">デモ用アクセスToken</h4>
             <div className="space-y-2">
-              {getAvailableKeys().map((config) => (
-                <div key={config.key} className="flex items-center justify-between text-xs">
+              {getAvailableTokens().map((config) => (
+                <div key={config.token} className="flex items-center justify-between text-xs">
                   <div>
                     <span className={`font-mono ${getRoleColor()}`}>{config.role}</span>
                     <span className="text-gray-600 ml-2">{config.description}</span>
                   </div>
                   <button
-                    onClick={() => handleDemoKeySelect(config.key)}
+                    onClick={() => handleDemoTokenSelect(config.token)}
                     disabled={isLoggingIn}
                     className={`px-2 py-1 rounded transition-colors ${
                       isLoggingIn 
@@ -134,7 +134,7 @@ export function ApiKeyInput() {
 
         <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded">
           <p className="text-sm text-yellow-800">
-            ⚠️ このアプリを使用するには有効なAPIキーが必要です。
+            ⚠️ このアプリを使用するには有効なアクセスTokenが必要です。
           </p>
         </div>
       </div>

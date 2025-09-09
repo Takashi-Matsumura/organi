@@ -3,9 +3,9 @@
 import { useState, useEffect, useRef } from 'react'
 import { OrganizationChart } from '../components/OrganizationChart'
 import { DndOrganizationChart } from '../components/DndOrganizationChart'
-import { ApiKeyInput } from '../components/ApiKeyInput'
+import { AccessTokenInput } from '../components/AccessTokenInput'
 import { Organization, Employee } from '../types/organization'
-import { useApiAuth } from '../hooks/useApiAuth'
+import { useTokenAuth } from '../hooks/useTokenAuth'
 import { FaEdit, FaDownload, FaUpload, FaChevronDown, FaSignOutAlt } from 'react-icons/fa'
 
 const loadOrganizationData = async (): Promise<Organization> => {
@@ -51,7 +51,7 @@ export default function Home() {
   const [showExportMenu, setShowExportMenu] = useState(false)
   const exportMenuRef = useRef<HTMLDivElement>(null)
   
-  const { isAuthenticated, canWrite, canDelete, role, logout } = useApiAuth()
+  const { isAuthenticated, canWrite, canDelete, role, logout } = useTokenAuth()
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -429,7 +429,7 @@ export default function Home() {
             <h1 className="text-2xl font-bold text-gray-800 mb-2">ORGANI</h1>
             <p className="text-gray-600">組織管理アプリ</p>
           </div>
-          <ApiKeyInput />
+          <AccessTokenInput />
         </div>
       </div>
     )
