@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Employee, Organization } from '../types/organization'
 
 interface EmployeeModalProps {
@@ -17,6 +17,12 @@ export function EmployeeModal({ employee, isOpen, onClose, organization, onUpdat
   const [editForm, setEditForm] = useState<Employee | null>(null)
   const [activeTab, setActiveTab] = useState<'info' | 'evaluees'>('info')
   const [isEditingEvaluees, setIsEditingEvaluees] = useState(false)
+  
+  // ドラッグ機能の状態
+  const [isDragging, setIsDragging] = useState(false)
+  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 })
+  const [position, setPosition] = useState({ x: 0, y: 0 })
+  const modalRef = useRef<HTMLDivElement>(null)
 
   // モーダルが開かれるたびに基本情報タブにリセット
   useEffect(() => {
@@ -25,8 +31,50 @@ export function EmployeeModal({ employee, isOpen, onClose, organization, onUpdat
       setIsEditing(false)
       setIsEditingEvaluees(false)
       setEditForm(null)
+      // モーダル位置をリセット
+      setPosition({ x: 0, y: 0 })
     }
   }, [isOpen, employee])
+
+  // ドラッグイベントハンドラー
+  const handleMouseDown = (e: React.MouseEvent) => {
+    setDragOffset({
+      x: e.clientX - position.x,
+      y: e.clientY - position.y
+    })
+    setIsDragging(true)
+  }
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (isDragging) {
+        const newX = e.clientX - dragOffset.x
+        const newY = e.clientY - dragOffset.y
+        
+        // 画面境界での制限を設定
+        const maxX = window.innerWidth / 2 - 100
+        const maxY = window.innerHeight / 2 - 100
+        
+        setPosition({
+          x: Math.max(-maxX, Math.min(maxX, newX)),
+          y: Math.max(-maxY, Math.min(maxY, newY))
+        })
+      }
+    }
+
+    const handleMouseUp = () => {
+      setIsDragging(false)
+    }
+
+    if (isDragging) {
+      document.addEventListener('mousemove', handleMouseMove)
+      document.addEventListener('mouseup', handleMouseUp)
+      return () => {
+        document.removeEventListener('mousemove', handleMouseMove)
+        document.removeEventListener('mouseup', handleMouseUp)
+      }
+    }
+  }, [isDragging, dragOffset])
 
   if (!isOpen || !employee) return null
 
@@ -200,9 +248,19 @@ export function EmployeeModal({ employee, isOpen, onClose, organization, onUpdat
 
   return (
     <div className="fixed inset-0 flex items-center justify-center z-50" style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}>
-      <div className="bg-white rounded-lg shadow-lg max-w-2xl w-full mx-4">
-        <div className="flex justify-between items-center p-6 border-b">
-          <h2 className="text-xl font-bold text-gray-800">社員情報</h2>
+      <div 
+        ref={modalRef}
+        className="bg-white rounded-lg shadow-lg max-w-2xl w-full mx-4 select-none"
+        style={{
+          transform: `translate(${position.x}px, ${position.y}px)`,
+          cursor: isDragging ? 'grabbing' : 'default'
+        }}
+      >
+        <div 
+          className="flex justify-between items-center p-6 border-b cursor-grab active:cursor-grabbing"
+          onMouseDown={handleMouseDown}
+        >
+          <h2 className="text-xl font-bold text-gray-800 pointer-events-none">社員情報</h2>
           <div className="flex items-center gap-2">
             {activeTab === 'info' && !isEditing && (
               <button
