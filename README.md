@@ -47,10 +47,11 @@
   - **LDAP認証**: 企業のActive Directory/LDAPサーバーと連携
   - **バイパス認証**: 開発・テスト用の簡易認証モード
 - **3段階の権限管理**:
-  - **ADMIN（管理者権限）**: 全ての機能にアクセス可能（閲覧・編集・削除）
+  - **ADMIN（管理者権限）**: 全ての機能にアクセス可能（閲覧・編集・削除・認可API）
   - **EDITOR（編集者権限）**: 閲覧・編集が可能（削除は不可）
   - **VIEWER（閲覧者権限）**: 閲覧のみ可能
 - **JWT トークンベース**: セキュアなトークン認証システム
+- **認可APIエンドポイント**: 他アプリとの連携用認可情報取得API
 - **企業環境対応**:
   - **プロキシサーバー対応**: 企業LANでのプロキシ経由接続
   - **横型ログイン画面**: デスクトップブラウザに最適化されたプロフェッショナルなUI
@@ -58,6 +59,7 @@
 - **開発者向け機能**:
   - **デモアカウント**: admin/admin123, editor/editor123, viewer/viewer123
   - **設定UI**: LDAP接続設定とプロキシ設定の直感的な設定画面
+  - **認可APIテスト画面**: 認可情報取得のテスト・検証機能（管理者限定）
 
 ### 💾 多様なデータ出力
 - **3つのエクスポート形式**:
@@ -181,13 +183,16 @@ const DATABASE_OPTIONS = [
 ```
 organi/
 ├── app/
-│   ├── api/organization/         # 組織データAPI
+│   ├── api/
+│   │   ├── auth/authorize/       # 認可APIエンドポイント
+│   │   └── organization/         # 組織データAPI
 │   ├── page.tsx                  # メインページ
 │   ├── layout.tsx                # アプリケーションレイアウト
 │   └── globals.css               # グローバルスタイル
 ├── components/
 │   ├── Accordion.tsx             # アコーディオンコンポーネント
 │   ├── AccessTokenInput.tsx      # アクセスToken入力・認証コンポーネント
+│   ├── AuthorizationTestPanel.tsx # 認可APIテストパネル（管理者限定）
 │   ├── DndOrganizationChart.tsx  # ドラッグ&ドロップ対応組織図
 │   ├── DraggableEmployee.tsx     # ドラッグ可能な社員コンポーネント
 │   ├── DropZone.tsx              # ドロップゾーンコンポーネント
@@ -305,6 +310,47 @@ LDAP_BIND_PASSWORD=your-service-password
 #### インポート
 「インポート」ボタンからJSON形式のファイルをアップロード
 
+### 認可APIの使用方法（管理者限定）
+
+#### 認可APIテスト画面
+1. 管理者権限でログイン
+2. ツールバーの紫色の🔑アイコンをクリック
+3. 認可APIテスト画面が表示される
+
+#### テスト機能
+- **現在のログインユーザーのトークン**: 自動的にlocalStorageから取得
+- **カスタムトークン**: 任意のJWTトークンでテスト可能
+- **POST API**: JSONでトークンを送信してテスト
+- **GET API (Bearer)**: Authorizationヘッダーでテスト
+- **詳細結果表示**: ユーザー情報・権限情報・認可時刻の詳細表示
+- **Raw APIレスポンス**: 開発者向けのJSON形式レスポンス確認
+
+#### 他アプリからの利用例
+評価スコアアプリなど外部アプリから認可情報を取得：
+
+```javascript
+// POST方式での認可情報取得
+const response = await fetch('http://localhost:3000/api/auth/authorize', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ token: jwtToken })
+})
+
+// GET方式での認可情報取得
+const response = await fetch('http://localhost:3000/api/auth/authorize', {
+  headers: { 'Authorization': `Bearer ${jwtToken}` }
+})
+
+const authData = await response.json()
+if (authData.success) {
+  // 認可成功：authData.authorization に権限情報
+  console.log('ユーザー権限:', authData.authorization.permissions)
+} else {
+  // 認可失敗：authData.error にエラーメッセージ
+  console.error('認可エラー:', authData.error)
+}
+```
+
 ## 🔧 API エンドポイント
 
 ### GET /api/organization
@@ -330,6 +376,68 @@ LDAP_BIND_PASSWORD=your-service-password
   "name": "株式会社サンプル",
   "departments": [...],
   "employees": [...]
+}
+```
+
+### POST /api/auth/authorize
+認可情報を取得（JWTトークンをJSONで送信）
+
+**リクエスト:**
+```json
+{
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+}
+```
+
+**レスポンス:**
+```json
+{
+  "success": true,
+  "authorization": {
+    "userId": "user-001",
+    "username": "john.doe",
+    "employeeId": "EMP001",
+    "permissions": {
+      "canRead": true,
+      "canWrite": true,
+      "canDelete": false,
+      "isManager": true
+    },
+    "department": "営業本部",
+    "position": "部長",
+    "authorizedAt": "2025-09-13T09:00:00.000Z",
+    "tokenValid": true
+  }
+}
+```
+
+### GET /api/auth/authorize
+認可情報を取得（Bearerトークンヘッダー）
+
+**ヘッダー:**
+```
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+```
+
+**レスポンス:**
+```json
+{
+  "success": true,
+  "authorization": {
+    "userId": "user-001",
+    "username": "john.doe",
+    "employeeId": "EMP001",
+    "permissions": {
+      "canRead": true,
+      "canWrite": true,
+      "canDelete": false,
+      "isManager": true
+    },
+    "department": "営業本部",
+    "position": "部長",
+    "authorizedAt": "2025-09-13T09:00:00.000Z",
+    "tokenValid": true
+  }
 }
 ```
 
@@ -427,6 +535,15 @@ Tailwind CSSクラスを使用してUIをカスタマイズ
 This project is licensed under the MIT License.
 
 ## 🔄 最新の改善点
+
+### 2025年9月13日更新 - 認可APIエンドポイント実装
+- **認可APIエンドポイント**: `/api/auth/authorize` 外部アプリ連携用API実装
+- **デュアルアクセス方式**: POST（JSON）とGET（Bearer）の両方式に対応
+- **JWT認証検証**: 高度なJWTトークン検証とエラーハンドリング
+- **認可テスト画面**: 管理者限定の認可情報テスト・検証機能
+- **詳細権限情報**: ユーザー情報、権限レベル、認可時刻等の包括的なレスポンス
+- **評価スコアアプリ連携**: 別アプリからの認可情報取得に対応
+- **開発者支援機能**: Raw APIレスポンス表示と詳細なテスト機能
 
 ### 2025年9月13日更新 - LDAP統合認証システム
 - **LDAP認証システム**: 企業のActive Directory/LDAPサーバーと統合認証

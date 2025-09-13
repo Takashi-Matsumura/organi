@@ -4,9 +4,10 @@ import { useState, useEffect, useRef } from 'react'
 import { OrganizationChart } from '../components/OrganizationChart'
 import { DndOrganizationChart } from '../components/DndOrganizationChart'
 import { AccessTokenInput } from '../components/AccessTokenInput'
+import { AuthorizationTestPanel } from '../components/AuthorizationTestPanel'
 import { Organization, Employee } from '../types/organization'
 import { useTokenAuth } from '../hooks/useTokenAuth'
-import { FaEdit, FaDownload, FaUpload, FaChevronDown, FaSignOutAlt } from 'react-icons/fa'
+import { FaEdit, FaDownload, FaUpload, FaChevronDown, FaSignOutAlt, FaKey } from 'react-icons/fa'
 
 const loadOrganizationData = async (): Promise<Organization> => {
   try {
@@ -49,6 +50,7 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null)
   const [isEditMode, setIsEditMode] = useState(false)
   const [showExportMenu, setShowExportMenu] = useState(false)
+  const [showAuthTestPanel, setShowAuthTestPanel] = useState(false)
   const exportMenuRef = useRef<HTMLDivElement>(null)
   
   const { isAuthenticated, canWrite, canDelete, role, logout } = useTokenAuth()
@@ -452,6 +454,19 @@ export default function Home() {
                 <FaEdit className="w-4 h-4" />
               </button>
             )}
+            {role === 'ADMIN' && (
+              <button
+                onClick={() => setShowAuthTestPanel(!showAuthTestPanel)}
+                className={`p-2 rounded transition-colors ${
+                  showAuthTestPanel
+                    ? 'bg-purple-600 text-white hover:bg-purple-700'
+                    : 'bg-purple-600 text-white hover:bg-purple-700'
+                }`}
+                title="認可APIテスト画面"
+              >
+                <FaKey className="w-4 h-4" />
+              </button>
+            )}
             <div className="relative" ref={exportMenuRef}>
               <button
                 onClick={() => setShowExportMenu(!showExportMenu)}
@@ -546,7 +561,19 @@ export default function Home() {
 
       {/* メインコンテンツ */}
       <div className="container mx-auto px-4 py-6">
-        {isEditMode ? (
+        {showAuthTestPanel && role === 'ADMIN' ? (
+          <div className="space-y-6">
+            <AuthorizationTestPanel />
+            <div className="text-center">
+              <button
+                onClick={() => setShowAuthTestPanel(false)}
+                className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 transition-colors"
+              >
+                組織図に戻る
+              </button>
+            </div>
+          </div>
+        ) : isEditMode ? (
           <DndOrganizationChart 
             organization={organizationData} 
             onDataUpdate={handleDataUpdate}
