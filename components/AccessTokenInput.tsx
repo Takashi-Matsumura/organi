@@ -1,47 +1,14 @@
 'use client'
 
-import { useState } from 'react'
-import { useTokenAuth } from '../hooks/useTokenAuth'
-import { FaKey, FaEye, FaEyeSlash, FaSignOutAlt, FaInfoCircle } from 'react-icons/fa'
+// シンプルな横型レイアウトのログイン画面を使用
+import { SimpleHorizontalLogin } from './SimpleHorizontalLogin'
+import { useAuth } from '../hooks/useAuth'
+import { FaKey, FaSignOutAlt } from 'react-icons/fa'
 
 export function AccessTokenInput() {
-  const [showToken, setShowToken] = useState(false)
-  const [inputToken, setInputToken] = useState('')
-  const [showDemo, setShowDemo] = useState(false)
-  const [isLoggingIn, setIsLoggingIn] = useState(false)
-  
-  const { 
-    accessToken, 
-    role, 
-    isAuthenticated, 
-    description,
-    setAuthAccessToken, 
-    logout,
-    getAvailableTokens
-  } = useTokenAuth()
+  const { isAuthenticated, userPermissions, logout } = useAuth()
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsLoggingIn(true)
-    setAuthAccessToken(inputToken)
-    setInputToken('')
-    // アクセスToken設定後にページをリロードしてログイン効果を演出
-    setTimeout(() => {
-      window.location.reload()
-    }, 800)
-  }
-
-  const handleDemoTokenSelect = (token: string) => {
-    setIsLoggingIn(true)
-    setAuthAccessToken(token)
-    setShowDemo(false)
-    // デモToken選択後にページをリロードしてログイン効果を演出
-    setTimeout(() => {
-      window.location.reload()
-    }, 800)
-  }
-
-  const getRoleColor = () => {
+  const getRoleColor = (role: string) => {
     switch (role) {
       case 'ADMIN': return 'text-red-600'
       case 'EDITOR': return 'text-yellow-600'
@@ -50,7 +17,7 @@ export function AccessTokenInput() {
     }
   }
 
-  const getRoleBgColor = () => {
+  const getRoleBgColor = (role: string) => {
     switch (role) {
       case 'ADMIN': return 'bg-red-50 border-red-200'
       case 'EDITOR': return 'bg-yellow-50 border-yellow-200'
@@ -60,93 +27,15 @@ export function AccessTokenInput() {
   }
 
   if (!isAuthenticated) {
-    return (
-      <div className="bg-white border border-gray-200 rounded-lg shadow-sm p-4 mb-6">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center">
-            <FaKey className="text-blue-600 mr-2" />
-            <h3 className="text-lg font-semibold text-gray-800">アクセスToken認証</h3>
-          </div>
-          <button
-            onClick={() => setShowDemo(!showDemo)}
-            className="flex items-center text-sm text-blue-600 hover:text-blue-800"
-          >
-            <FaInfoCircle className="mr-1" size={12} />
-            デモToken
-          </button>
-        </div>
-
-        <form onSubmit={handleSubmit} className="flex gap-2">
-          <input
-            type="text"
-            value={inputToken}
-            onChange={(e) => setInputToken(e.target.value)}
-            placeholder="アクセスTokenを入力してください..."
-            className="flex-1 px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-            required
-          />
-          <button
-            type="submit"
-            disabled={isLoggingIn}
-            className={`px-4 py-2 text-white rounded transition-colors flex items-center gap-2 ${
-              isLoggingIn 
-                ? 'bg-gray-400 cursor-not-allowed' 
-                : 'bg-blue-600 hover:bg-blue-700'
-            }`}
-          >
-            {isLoggingIn ? (
-              <>
-                <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full"></div>
-                ログイン中...
-              </>
-            ) : (
-              '認証'
-            )}
-          </button>
-        </form>
-
-        {showDemo && (
-          <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded">
-            <h4 className="text-sm font-medium text-blue-800 mb-2">デモ用アクセスToken</h4>
-            <div className="space-y-2">
-              {getAvailableTokens().map((config) => (
-                <div key={config.token} className="flex items-center justify-between text-xs">
-                  <div>
-                    <span className={`font-mono ${getRoleColor()}`}>{config.role}</span>
-                    <span className="text-gray-600 ml-2">{config.description}</span>
-                  </div>
-                  <button
-                    onClick={() => handleDemoTokenSelect(config.token)}
-                    disabled={isLoggingIn}
-                    className={`px-2 py-1 rounded transition-colors ${
-                      isLoggingIn 
-                        ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
-                        : 'bg-blue-100 text-blue-700 hover:bg-blue-200'
-                    }`}
-                  >
-                    {isLoggingIn ? 'ログイン中...' : '使用'}
-                  </button>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded">
-          <p className="text-sm text-yellow-800">
-            ⚠️ このアプリを使用するには有効なアクセスTokenが必要です。
-          </p>
-        </div>
-      </div>
-    )
+    return <SimpleHorizontalLogin />
   }
 
   return (
     <div className="flex items-center gap-2">
-      <div className={`flex items-center px-3 py-1 rounded text-sm ${getRoleBgColor()}`}>
-        <FaKey className={`mr-1 ${getRoleColor()}`} size={12} />
-        <span className={`font-medium ${getRoleColor()}`}>
-          {role}
+      <div className={`flex items-center px-3 py-1 rounded text-sm border ${getRoleBgColor(userPermissions?.role || 'VIEWER')}`}>
+        <FaKey className={`mr-1 ${getRoleColor(userPermissions?.role || 'VIEWER')}`} size={12} />
+        <span className={`font-medium ${getRoleColor(userPermissions?.role || 'VIEWER')}`}>
+          {userPermissions?.role || 'VIEWER'}
         </span>
       </div>
       <button

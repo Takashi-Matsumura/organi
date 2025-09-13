@@ -52,6 +52,11 @@ export default function Home() {
   const exportMenuRef = useRef<HTMLDivElement>(null)
   
   const { isAuthenticated, canWrite, canDelete, role, logout } = useTokenAuth()
+  
+  // 認証状態のデバッグログ
+  useEffect(() => {
+    console.log('Auth state changed:', { isAuthenticated, role })
+  }, [isAuthenticated, role])
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -422,17 +427,7 @@ export default function Home() {
 
   // 認証されていない場合のレンダリング
   if (!isAuthenticated) {
-    return (
-      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-        <div className="bg-white rounded-lg shadow-xl p-8 max-w-md w-full mx-4">
-          <div className="text-center mb-6">
-            <h1 className="text-2xl font-bold text-gray-800 mb-2">ORGANI</h1>
-            <p className="text-gray-600">組織管理アプリ</p>
-          </div>
-          <AccessTokenInput />
-        </div>
-      </div>
-    )
+    return <AccessTokenInput />
   }
 
   return (
