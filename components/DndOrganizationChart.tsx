@@ -72,7 +72,7 @@ export function DndOrganizationChart({ organization, onDataUpdate }: DndOrganiza
 
   return (
     <DndProvider backend={HTML5Backend}>
-      <div className="max-w-4xl mx-auto p-6">
+      <div className="w-full">
         <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded">
           <h2 className="font-bold text-blue-800 mb-2">ドラッグ&ドロップ編集モード</h2>
           <p className="text-sm text-blue-700">
@@ -106,15 +106,15 @@ export function DndOrganizationChart({ organization, onDataUpdate }: DndOrganiza
                   className="mb-4 min-h-[100px] border-2 relative p-2"
                 >
                   <h4 className="text-sm font-semibold text-gray-700 mb-2 pl-2">本部直轄</h4>
-                  <div className="grid grid-cols-3 gap-2">
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2">
                     {departmentEmployees.map((employee) => (
                       <DraggableEmployee 
                         key={employee.id}
                         employee={employee}
                         onClick={() => handleEmployeeClick(employee.id)}
                       >
-                        <div className="py-2 px-3 bg-blue-50 border border-blue-200 text-center rounded">
-                          <span className="text-blue-600 text-sm font-medium cursor-pointer hover:text-blue-800">
+                        <div className="py-2 px-3 bg-blue-50 border border-blue-200 text-center rounded transform transition-all duration-200 hover:scale-[1.02] hover:shadow-sm hover:bg-blue-100">
+                          <span className="text-blue-600 text-sm font-medium cursor-pointer hover:text-blue-800 transition-all duration-200 hover:text-base">
                             {employee.name}（{employee.position}）
                           </span>
                         </div>
@@ -162,7 +162,7 @@ export function DndOrganizationChart({ organization, onDataUpdate }: DndOrganiza
                               department={department.name}
                               section={section.name}
                               course={course.name}
-                              className="grid grid-cols-3 gap-2 mt-2 min-h-[80px] border-2 relative p-2"
+                              className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2 mt-2 min-h-[80px] border-2 relative p-2"
                             >
                               {courseEmployees.map((employee) => (
                                 <DraggableEmployee 
@@ -170,8 +170,8 @@ export function DndOrganizationChart({ organization, onDataUpdate }: DndOrganiza
                                   employee={employee}
                                   onClick={() => handleEmployeeClick(employee.id)}
                                 >
-                                  <div className="py-2 px-3 bg-white border border-gray-200 text-center rounded">
-                                    <span className="text-blue-600 text-sm cursor-pointer hover:text-blue-800">
+                                  <div className="py-2 px-3 bg-white border border-gray-200 text-center rounded transform transition-all duration-200 hover:scale-[1.02] hover:shadow-sm hover:bg-gray-50">
+                                    <span className="text-blue-600 text-sm cursor-pointer hover:text-blue-800 transition-all duration-200 hover:text-base">
                                       {employee.name}（{employee.position}）
                                     </span>
                                   </div>
@@ -186,7 +186,7 @@ export function DndOrganizationChart({ organization, onDataUpdate }: DndOrganiza
                         onDrop={handleEmployeeDrop}
                         department={department.name}
                         section={section.name}
-                        className="grid grid-cols-3 gap-2 mt-2 min-h-[80px] border-2 relative p-2"
+                        className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2 mt-2 min-h-[80px] border-2 relative p-2"
                       >
                         {sectionEmployees.map((employee) => (
                           <DraggableEmployee 
@@ -194,8 +194,8 @@ export function DndOrganizationChart({ organization, onDataUpdate }: DndOrganiza
                             employee={employee}
                             onClick={() => handleEmployeeClick(employee.id)}
                           >
-                            <div className="py-2 px-3 bg-white border border-gray-200 text-center rounded">
-                              <span className="text-blue-600 text-sm cursor-pointer hover:text-blue-800">
+                            <div className="py-2 px-3 bg-white border border-gray-200 text-center rounded transform transition-all duration-200 hover:scale-[1.02] hover:shadow-sm hover:bg-gray-50">
+                              <span className="text-blue-600 text-sm cursor-pointer hover:text-blue-800 transition-all duration-200 hover:text-base">
                                 {employee.name}（{employee.position}）
                               </span>
                             </div>

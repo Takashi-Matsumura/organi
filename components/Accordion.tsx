@@ -55,7 +55,7 @@ export function Accordion({ title, children, defaultOpen = false, level = 0, onM
             {getIconForLevel()}
             <span>{groupName}（</span>
             <span 
-              className="manager-name text-blue-600 hover:text-blue-800 underline cursor-pointer"
+              className="manager-name text-blue-600 hover:text-blue-800 underline cursor-pointer transition-all duration-200 hover:text-lg hover:font-bold"
               onClick={(e) => {
                 e.stopPropagation()
                 onManagerClick()
@@ -77,9 +77,9 @@ export function Accordion({ title, children, defaultOpen = false, level = 0, onM
   }
 
   return (
-    <div className={`border ${borderColorClass} mb-2`}>
+    <div className={`border ${borderColorClass} mb-2 transform transition-all duration-200 hover:scale-[1.015] hover:shadow-md`}>
       <button
-        className={`w-full ${paddingClass} py-3 text-left flex items-center justify-between ${bgColorClass} hover:opacity-80 transition-opacity`}
+        className={`w-full ${paddingClass} py-3 text-left flex items-center justify-between ${bgColorClass} hover:opacity-90 transition-all duration-200`}
         onClick={handleTitleClick}
       >
         {renderTitle()}

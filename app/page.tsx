@@ -434,7 +434,7 @@ export default function Home() {
     <div className="min-h-screen bg-gray-100">
       {/* ツールバー */}
       <div className="bg-white border-b shadow-sm p-4">
-        <div className="max-w-4xl mx-auto flex items-center justify-between">
+        <div className="container mx-auto px-4 flex items-center justify-between">
           <h1 className="text-xl font-bold text-gray-800">
             ORGANI - 組織管理アプリ
           </h1>
@@ -545,7 +545,7 @@ export default function Home() {
       </div>
 
       {/* メインコンテンツ */}
-      <div className="p-6">
+      <div className="container mx-auto px-4 py-6">
         {isEditMode ? (
           <DndOrganizationChart 
             organization={organizationData} 

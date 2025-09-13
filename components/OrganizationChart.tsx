@@ -77,7 +77,7 @@ export function OrganizationChart({ organization, onDataUpdate }: OrganizationCh
   const availablePositions = Array.from(new Set(organization.employees.map(emp => emp.position))).sort()
 
   return (
-    <div className="max-w-4xl mx-auto p-6">
+    <div className="w-full">
       {/* フィルターセクション */}
       <div className="mb-6 p-4 bg-gray-50 border border-gray-200 rounded-lg">
         {hasActiveFilters && (
@@ -181,12 +181,12 @@ export function OrganizationChart({ organization, onDataUpdate }: OrganizationCh
             {departmentEmployees.length > 0 && (
               <div className="mb-4">
                 <h4 className="text-sm font-semibold text-gray-700 mb-2 pl-2">本部直轄</h4>
-                <div className="grid grid-cols-3 gap-2">
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2">
                   {departmentEmployees.map((employee) => (
-                    <div key={employee.id} className="py-2 px-3 bg-blue-50 border border-blue-200 text-center">
+                    <div key={employee.id} className="py-2 px-3 bg-blue-50 border border-blue-200 text-center transform transition-all duration-200 hover:scale-[1.02] hover:shadow-sm hover:bg-blue-100">
                       <button
                         onClick={() => handleEmployeeClick(employee.id)}
-                        className="text-blue-600 hover:text-blue-800 underline text-sm font-medium"
+                        className="text-blue-600 hover:text-blue-800 underline text-sm font-medium transition-all duration-200 hover:text-lg hover:font-bold"
                       >
                         {employee.name}（{employee.position}）
                       </button>
@@ -262,12 +262,12 @@ export function OrganizationChart({ organization, onDataUpdate }: OrganizationCh
                         managerId={course.managerId}
                         forceOpen={hasActiveFilters}
                       >
-                        <div className="grid grid-cols-3 gap-2 mt-2">
+                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2 mt-2">
                           {courseEmployees.map((employee) => (
-                            <div key={employee.id} className="py-2 px-3 bg-white border border-gray-200 text-center">
+                            <div key={employee.id} className="py-2 px-3 bg-white border border-gray-200 text-center transform transition-all duration-200 hover:scale-[1.02] hover:shadow-sm hover:bg-gray-50">
                               <button
                                 onClick={() => handleEmployeeClick(employee.id)}
-                                className="text-blue-600 hover:text-blue-800 underline text-sm"
+                                className="text-blue-600 hover:text-blue-800 underline text-sm transition-all duration-200 hover:text-base"
                               >
                                 {employee.name}（{employee.position}）
                               </button>
@@ -279,12 +279,12 @@ export function OrganizationChart({ organization, onDataUpdate }: OrganizationCh
                   })
                 ) : (
                   // 課がない場合は部直下に社員を表示
-                  <div className="grid grid-cols-3 gap-2 mt-2">
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2 mt-2">
                     {sectionEmployees.map((employee) => (
-                      <div key={employee.id} className="py-2 px-3 bg-white border border-gray-200 text-center">
+                      <div key={employee.id} className="py-2 px-3 bg-white border border-gray-200 text-center transform transition-all duration-200 hover:scale-[1.02] hover:shadow-sm hover:bg-gray-50">
                         <button
                           onClick={() => handleEmployeeClick(employee.id)}
-                          className="text-blue-600 hover:text-blue-800 underline text-sm"
+                          className="text-blue-600 hover:text-blue-800 underline text-sm transition-all duration-200 hover:text-base"
                         >
                           {employee.name}（{employee.position}）
                         </button>
