@@ -13,11 +13,33 @@ import { FaEdit, FaDownload, FaUpload, FaChevronDown, FaSignOutAlt, FaKey, FaCha
 
 const loadOrganizationData = async (): Promise<Organization> => {
   try {
+    console.log('Fetching from /api/organization...')
     const response = await fetch('/api/organization')
+    console.log('Response status:', response.status, response.ok)
     if (!response.ok) {
-      throw new Error('データファイルの読み込みに失敗しました')
+      throw new Error(`データファイルの読み込みに失敗しました: ${response.status}`)
     }
-    return await response.json()
+    const data = await response.json()
+    console.log('Parsed JSON data:', data ? `Success with ${data.employees?.length || 0} employees` : 'No data')
+
+    // 既存データに評価担当フラグを設定
+    if (data && data.employees) {
+      data.employees = data.employees.map((emp: Employee) => {
+        // isEvaluatorフラグが未設定の場合のみデフォルト値を設定
+        if (emp.isEvaluator === undefined) {
+          const isManager = emp.position.includes('本部長') ||
+            emp.position.includes('副本部長') ||
+            emp.position.includes('部長') ||
+            emp.position.includes('課長') ||
+            emp.position.includes('管理職')
+
+          return { ...emp, isEvaluator: isManager }
+        }
+        return emp
+      })
+    }
+
+    return data
   } catch (error) {
     console.error('組織データの読み込みエラー:', error)
     throw error
@@ -78,17 +100,32 @@ export default function Home() {
 
   useEffect(() => {
     const initializeData = async () => {
+      console.log('Starting data initialization...')
       try {
+        console.log('Calling loadOrganizationData...')
         const data = await loadOrganizationData()
+        console.log('Data loaded successfully:', data ? `Data available with ${data.employees?.length || 0} employees` : 'No data')
         setOrganizationData(data)
-      } catch {
+        console.log('Organization data set')
+      } catch (error) {
+        console.error('Data loading error:', error)
         setError('組織データの読み込みに失敗しました。ページを再読み込みしてください。')
       } finally {
+        console.log('Setting loading to false')
         setLoading(false)
       }
     }
 
+    console.log('useEffect triggered - starting initialization')
     initializeData()
+
+    // フォールバック: 5秒後に強制的にローディングを終了
+    const fallbackTimeout = setTimeout(() => {
+      console.log('Fallback: Setting loading to false after timeout')
+      setLoading(false)
+    }, 5000)
+
+    return () => clearTimeout(fallbackTimeout)
   }, [])
 
   const handleDataUpdate = async (newData: Organization) => {
@@ -215,7 +252,7 @@ export default function Home() {
     
     // 社員一覧
     md += '## 社員一覧\n\n'
-    md += '| 社員ID | 名前 | 部署 | 部 | 課 | 役職 | メール | 電話番号 | 入社日 | 生年月日 |\n'
+    md += '| 社員ID | 名前 | 部署 | 部 | 課 | 役職・職種 | メール | 電話番号 | 入社日 | 生年月日 |\n'
     md += '|--------|------|------|-----|-----|------|-------|---------|----------|-----------|\n'
     
     data.employees.forEach((emp) => {
@@ -321,8 +358,8 @@ export default function Home() {
   // 3. CSV形式のデータ生成
   const generateCSV = (data: Organization): string => {
     const headers = [
-      '社員ID', '氏名', '役職', '本部', '部', '課', 'メール', '電話番号',
-      '入社日', '生年月日', '資格等級', '評価者ID', '評価者名', '評価者役職', '評価者所属', '評価関係タイプ'
+      '社員ID', '氏名', '役職・職種', '本部', '部', '課', 'メール', '電話番号',
+      '入社日', '生年月日', '資格等級', '評価者ID', '評価者名', '評価者役職・職種', '評価者所属', '評価関係タイプ'
     ]
     
     let csv = headers.join(',') + '\n'
@@ -438,174 +475,151 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-gray-100">
-      {/* ツールバー */}
-      <div className="bg-white border-b shadow-sm p-4">
-        <div className="container mx-auto px-4 flex items-center justify-between">
-          <h1 className="text-xl font-bold text-gray-800">
-            ORGANI - 組織管理アプリ
-          </h1>
-          <div className="flex items-center gap-2">
-            {canWrite() && (
-              <button
-                onClick={toggleEditMode}
-                className={`p-2 rounded transition-colors ${
-                  isEditMode
-                    ? 'bg-green-600 text-white hover:bg-green-700'
-                    : 'bg-blue-600 text-white hover:bg-blue-700'
-                }`}
-                title={isEditMode ? '表示モード' : '編集モード'}
-              >
-                <FaEdit className="w-4 h-4" />
-              </button>
-            )}
-            {role === 'ADMIN' && (
-              <button
-                onClick={() => setShowAuthTestPanel(!showAuthTestPanel)}
-                className={`p-2 rounded transition-colors ${
-                  showAuthTestPanel
-                    ? 'bg-purple-600 text-white hover:bg-purple-700'
-                    : 'bg-purple-600 text-white hover:bg-purple-700'
-                }`}
-                title="認可APIテスト画面"
-              >
-                <FaKey className="w-4 h-4" />
-              </button>
-            )}
-            <div className="relative" ref={exportMenuRef}>
-              <button
-                onClick={() => setShowExportMenu(!showExportMenu)}
-                className="p-2 bg-gray-600 text-white rounded hover:bg-gray-700 transition-colors"
-                title="エクスポート"
-              >
-                <FaDownload className="w-4 h-4" />
-              </button>
-              
-              {showExportMenu && (
-                <div className="absolute right-0 mt-2 w-64 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
-                  <div className="py-2">
-                    <button
-                      onClick={() => {
-                        exportData('organization-md')
-                        setShowExportMenu(false)
-                      }}
-                      className="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 flex items-start gap-3"
-                    >
-                      <div className="flex-shrink-0 mt-0.5">
-                        <span className="inline-block w-2 h-2 bg-blue-500 rounded-full"></span>
-                      </div>
-                      <div>
-                        <div className="font-medium">組織図（Markdown）</div>
-                        <div className="text-xs text-gray-500 mt-1">組織構造に沿ったデータ出力</div>
-                      </div>
-                    </button>
-                    
-                    <button
-                      onClick={() => {
-                        exportData('evaluation-md')
-                        setShowExportMenu(false)
-                      }}
-                      className="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 flex items-start gap-3"
-                    >
-                      <div className="flex-shrink-0 mt-0.5">
-                        <span className="inline-block w-2 h-2 bg-green-500 rounded-full"></span>
-                      </div>
-                      <div>
-                        <div className="font-medium">評価関係（Markdown）</div>
-                        <div className="text-xs text-gray-500 mt-1">評価者と被評価者の関係データ</div>
-                      </div>
-                    </button>
-                    
-                    <button
-                      onClick={() => {
-                        exportData('csv')
-                        setShowExportMenu(false)
-                      }}
-                      className="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 flex items-start gap-3"
-                    >
-                      <div className="flex-shrink-0 mt-0.5">
-                        <span className="inline-block w-2 h-2 bg-orange-500 rounded-full"></span>
-                      </div>
-                      <div>
-                        <div className="font-medium">統合データ（CSV）</div>
-                        <div className="text-xs text-gray-500 mt-1">組織図と評価関係を含む全データ</div>
-                      </div>
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
-            <label className="p-2 bg-orange-600 text-white rounded hover:bg-orange-700 transition-colors cursor-pointer" title="インポート">
-              <FaUpload className="w-4 h-4" />
-              <input
-                type="file"
-                accept=".json"
-                onChange={importData}
-                className="hidden"
-              />
-            </label>
+      {/* ヘッダーとタブナビゲーションの固定コンテナ */}
+      <div className="fixed top-0 left-0 right-0 z-50 bg-white shadow-sm">
+        {/* ツールバー */}
+        <div className="border-b p-4">
+          <div className="container mx-auto px-4 flex items-center justify-between">
+            <h1 className="text-xl font-bold text-gray-800">
+              ORGANI - 組織管理アプリ
+            </h1>
             <div className="flex items-center gap-2">
-              <div className={`flex items-center px-3 py-1 rounded text-sm ${
-                role === 'ADMIN' ? 'bg-red-50 border-red-200 text-red-600' :
-                role === 'EDITOR' ? 'bg-yellow-50 border-yellow-200 text-yellow-600' :
-                'bg-green-50 border-green-200 text-green-600'
-              } border`}>
-                <span className="font-medium">{role}</span>
+              <div className="relative" ref={exportMenuRef}>
+                <button
+                  onClick={() => setShowExportMenu(!showExportMenu)}
+                  className="p-2 bg-gray-600 text-white rounded hover:bg-gray-700 transition-colors"
+                  title="エクスポート"
+                >
+                  <FaDownload className="w-4 h-4" />
+                </button>
+
+                {showExportMenu && (
+                  <div className="absolute right-0 mt-2 w-64 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
+                    <div className="py-2">
+                      <button
+                        onClick={() => {
+                          exportData('organization-md')
+                          setShowExportMenu(false)
+                        }}
+                        className="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 flex items-start gap-3"
+                      >
+                        <div className="flex-shrink-0 mt-0.5">
+                          <span className="inline-block w-2 h-2 bg-blue-500 rounded-full"></span>
+                        </div>
+                        <div>
+                          <div className="font-medium">組織図（Markdown）</div>
+                          <div className="text-xs text-gray-500 mt-1">組織構造に沿ったデータ出力</div>
+                        </div>
+                      </button>
+
+                      <button
+                        onClick={() => {
+                          exportData('evaluation-md')
+                          setShowExportMenu(false)
+                        }}
+                        className="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 flex items-start gap-3"
+                      >
+                        <div className="flex-shrink-0 mt-0.5">
+                          <span className="inline-block w-2 h-2 bg-green-500 rounded-full"></span>
+                        </div>
+                        <div>
+                          <div className="font-medium">評価関係（Markdown）</div>
+                          <div className="text-xs text-gray-500 mt-1">評価者と被評価者の関係データ</div>
+                        </div>
+                      </button>
+
+                      <button
+                        onClick={() => {
+                          exportData('csv')
+                          setShowExportMenu(false)
+                        }}
+                        className="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 flex items-start gap-3"
+                      >
+                        <div className="flex-shrink-0 mt-0.5">
+                          <span className="inline-block w-2 h-2 bg-orange-500 rounded-full"></span>
+                        </div>
+                        <div>
+                          <div className="font-medium">統合データ（CSV）</div>
+                          <div className="text-xs text-gray-500 mt-1">組織図と評価関係を含む全データ</div>
+                        </div>
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
-              <button
-                onClick={logout}
-                className="p-2 text-gray-400 hover:text-red-600 rounded hover:bg-gray-100"
-                title="ログアウト"
-              >
-                <FaSignOutAlt size={16} />
-              </button>
+              <label className="p-2 bg-orange-600 text-white rounded hover:bg-orange-700 transition-colors cursor-pointer" title="インポート">
+                <FaUpload className="w-4 h-4" />
+                <input
+                  type="file"
+                  accept=".json"
+                  onChange={importData}
+                  className="hidden"
+                />
+              </label>
+              <div className="flex items-center gap-2">
+                <div className={`flex items-center px-3 py-1 rounded text-sm ${
+                  role === 'ADMIN' ? 'bg-red-50 border-red-200 text-red-600' :
+                  role === 'EDITOR' ? 'bg-yellow-50 border-yellow-200 text-yellow-600' :
+                  'bg-green-50 border-green-200 text-green-600'
+                } border`}>
+                  <span className="font-medium">{role}</span>
+                </div>
+                <button
+                  onClick={logout}
+                  className="p-2 text-gray-400 hover:text-red-600 rounded hover:bg-gray-100"
+                  title="ログアウト"
+                >
+                  <FaSignOutAlt size={16} />
+                </button>
+              </div>
             </div>
+          </div>
+        </div>
+
+        {/* タブナビゲーション */}
+        <div className="border-b">
+          <div className="container mx-auto px-4">
+            <nav className="flex space-x-8">
+              <button
+                onClick={() => setActiveTab('organization')}
+                className={`py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2 ${
+                  activeTab === 'organization'
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                <FaSitemap className="w-4 h-4" />
+                組織図
+              </button>
+              <button
+                onClick={() => setActiveTab('search')}
+                className={`py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2 ${
+                  activeTab === 'search'
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                <FaSearch className="w-4 h-4" />
+                社員検索
+              </button>
+              <button
+                onClick={() => setActiveTab('analytics')}
+                className={`py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2 ${
+                  activeTab === 'analytics'
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                <FaChartBar className="w-4 h-4" />
+                分析
+              </button>
+            </nav>
           </div>
         </div>
       </div>
 
-      {/* タブナビゲーション */}
-      <div className="border-b bg-white">
-        <div className="container mx-auto px-4">
-          <nav className="flex space-x-8">
-            <button
-              onClick={() => setActiveTab('organization')}
-              className={`py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2 ${
-                activeTab === 'organization'
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              }`}
-            >
-              <FaSitemap className="w-4 h-4" />
-              組織図
-            </button>
-            <button
-              onClick={() => setActiveTab('analytics')}
-              className={`py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2 ${
-                activeTab === 'analytics'
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              }`}
-            >
-              <FaChartBar className="w-4 h-4" />
-              分析
-            </button>
-            <button
-              onClick={() => setActiveTab('search')}
-              className={`py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2 ${
-                activeTab === 'search'
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              }`}
-            >
-              <FaSearch className="w-4 h-4" />
-              社員検索
-            </button>
-          </nav>
-        </div>
-      </div>
-
       {/* メインコンテンツ */}
-      <div className="container mx-auto px-4 py-6">
+      <div className="container mx-auto px-4 py-6 mt-[140px]">
         {showAuthTestPanel && role === 'ADMIN' ? (
           <div className="space-y-6">
             <AuthorizationTestPanel />
@@ -631,16 +645,56 @@ export default function Home() {
             }}
             onUpdateOrganization={handleDataUpdate}
           />
-        ) : isEditMode ? (
-          <DndOrganizationChart
-            organization={organizationData}
-            onDataUpdate={handleDataUpdate}
-          />
         ) : (
-          <OrganizationChart
-            organization={organizationData}
-            onDataUpdate={handleDataUpdate}
-          />
+          <div className="space-y-6">
+            {/* 組織図タブ専用のコントロール */}
+            <div className="flex items-center justify-between">
+              <h2 className="text-2xl font-bold text-gray-800">組織図</h2>
+              <div className="flex items-center gap-2">
+                {canWrite() && (
+                  <button
+                    onClick={toggleEditMode}
+                    className={`flex items-center gap-2 px-4 py-2 rounded transition-colors ${
+                      isEditMode
+                        ? 'bg-green-600 text-white hover:bg-green-700'
+                        : 'bg-blue-600 text-white hover:bg-blue-700'
+                    }`}
+                    title={isEditMode ? '表示モード' : '編集モード'}
+                  >
+                    <FaEdit className="w-4 h-4" />
+                    {isEditMode ? '表示モード' : '編集モード'}
+                  </button>
+                )}
+                {role === 'ADMIN' && (
+                  <button
+                    onClick={() => setShowAuthTestPanel(!showAuthTestPanel)}
+                    className={`flex items-center gap-2 px-4 py-2 rounded transition-colors ${
+                      showAuthTestPanel
+                        ? 'bg-purple-600 text-white hover:bg-purple-700'
+                        : 'bg-purple-600 text-white hover:bg-purple-700'
+                    }`}
+                    title="認可APIテスト画面"
+                  >
+                    <FaKey className="w-4 h-4" />
+                    APIテスト
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* 組織図コンテンツ */}
+            {isEditMode ? (
+              <DndOrganizationChart
+                organization={organizationData}
+                onDataUpdate={handleDataUpdate}
+              />
+            ) : (
+              <OrganizationChart
+                organization={organizationData}
+                onDataUpdate={handleDataUpdate}
+              />
+            )}
+          </div>
         )}
       </div>
     </div>

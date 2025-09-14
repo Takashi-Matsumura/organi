@@ -161,34 +161,34 @@ export function EmployeeModal({ employee, isOpen, onClose, organization, onUpdat
 
   // 同じ部門内の管理職を取得（評価者候補）
   const getDepartmentManagers = (): Employee[] => {
-    const managers: Employee[] = []
+    const managersMap = new Map<string, Employee>() // 重複除去のためのMap
     const targetDepartment = organization.departments.find(dept => dept.name === employee.department)
-    
+
     if (targetDepartment) {
       // 本部長
       const deptManager = organization.employees.find(emp => emp.id === targetDepartment.managerId)
       if (deptManager && deptManager.id !== employee.id) {
-        managers.push(deptManager)
+        managersMap.set(deptManager.id, deptManager)
       }
-      
+
       // 部長たち
       targetDepartment.sections.forEach(section => {
         const sectionManager = organization.employees.find(emp => emp.id === section.managerId)
         if (sectionManager && sectionManager.id !== employee.id) {
-          managers.push(sectionManager)
+          managersMap.set(sectionManager.id, sectionManager)
         }
-        
+
         // 課長たち
         section.courses.forEach(course => {
           const courseManager = organization.employees.find(emp => emp.id === course.managerId)
           if (courseManager && courseManager.id !== employee.id) {
-            managers.push(courseManager)
+            managersMap.set(courseManager.id, courseManager)
           }
         })
       })
     }
-    
-    return managers
+
+    return Array.from(managersMap.values())
   }
 
   const startEditing = () => {
@@ -332,7 +332,7 @@ export function EmployeeModal({ employee, isOpen, onClose, organization, onUpdat
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">役職</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">役職・職種</label>
                   <input
                     type="text"
                     value={editForm.position}
@@ -453,7 +453,7 @@ export function EmployeeModal({ employee, isOpen, onClose, organization, onUpdat
                   <p className="text-gray-800 font-semibold">{employee.name}</p>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-600">役職</label>
+                  <label className="block text-sm font-medium text-gray-600">役職・職種</label>
                   <p className="text-gray-800">{employee.position}</p>
                 </div>
               </div>
@@ -542,7 +542,10 @@ export function EmployeeModal({ employee, isOpen, onClose, organization, onUpdat
                                 {employee.name}（現在の評価者）- {employee.section || '本部直轄'}
                               </option>
                               {getDepartmentManagers()
-                                .filter(manager => manager.id !== employee.id)
+                                .filter((manager, index, array) =>
+                                  manager.id !== employee.id &&
+                                  array.findIndex(m => m.id === manager.id) === index
+                                )
                                 .map((manager) => (
                                 <option key={manager.id} value={manager.id}>
                                   {manager.name}（{manager.position}）- {manager.section || '本部直轄'}{manager.course ? ` / ${manager.course}` : ''}

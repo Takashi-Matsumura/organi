@@ -14,6 +14,8 @@ export interface Employee {
   birthDate: string
   qualificationGrade?: QualificationGrade // 資格等級
   evaluatorId?: string // 評価者のID（任意）
+  evaluator?: string // 評価者の名前（任意）
+  isEvaluator?: boolean // 評価担当フラグ（任意、デフォルトは管理職でtrue）
 }
 
 export interface Department {
