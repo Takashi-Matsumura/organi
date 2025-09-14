@@ -1,4 +1,4 @@
-import jwt from 'jsonwebtoken'
+import jwt, { SignOptions } from 'jsonwebtoken'
 import { AuthUser, UserPermissions } from '../types/auth'
 
 interface JWTPayload {
@@ -27,11 +27,13 @@ export class JWTService {
       type: 'access'
     }
     
-    return jwt.sign(payload, this.secret, {
+    const options = {
       expiresIn: this.accessExpiresIn,
       issuer: 'organi-auth',
       subject: user.id
-    })
+    } as SignOptions
+
+    return jwt.sign(payload, this.secret, options)
   }
 
   generateRefreshToken(user: AuthUser, permissions: UserPermissions): string {
@@ -41,11 +43,13 @@ export class JWTService {
       type: 'refresh'
     }
     
-    return jwt.sign(payload, this.secret, {
+    const options = {
       expiresIn: this.refreshExpiresIn,
       issuer: 'organi-auth',
       subject: user.id
-    })
+    } as SignOptions
+
+    return jwt.sign(payload, this.secret, options)
   }
 
   verifyToken(token: string): JWTPayload | null {

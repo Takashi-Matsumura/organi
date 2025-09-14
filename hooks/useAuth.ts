@@ -274,7 +274,6 @@ export function useAuth() {
     role: authState.permissions?.role || null,
     permissions: authState.permissions?.permissions || [],
     description: authState.permissions?.description || '',
-    isAuthenticated: authState.isAuthenticated,
     setAuthAccessToken: (token: string) => {
       // 既存のトークン形式での設定（後方互換性）
       if (typeof window !== 'undefined') {

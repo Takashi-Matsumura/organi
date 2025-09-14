@@ -90,7 +90,7 @@ export function ModernLoginForm() {
         window.location.reload()
       }
     } else {
-      const success = await login(username, password)
+      const success = await login({ username, password })
       if (success) {
         window.location.reload()
       }
@@ -122,7 +122,7 @@ export function ModernLoginForm() {
   }
 
   const handleDemoLogin = async (demoUsername: string, demoPassword: string) => {
-    const success = await login(demoUsername, demoPassword)
+    const success = await login({ username: demoUsername, password: demoPassword })
     if (success) {
       window.location.reload()
     }
