@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Employee, Organization } from '../types/organization'
+import { Employee, Organization, QualificationGrade } from '../types/organization'
 
 interface EmployeeEditorProps {
   organization: Organization
@@ -50,10 +50,12 @@ export function EmployeeEditor({ organization, onDataUpdate }: EmployeeEditorPro
     if (editForm) {
       setEditForm({
         ...editForm,
-        [field]: value
+        [field]: value === '' && field === 'qualificationGrade' ? undefined : value
       })
     }
   }
+
+  const qualificationGrades: (QualificationGrade | '')[] = ['', 'SA', 'S4', 'S3', 'S2', 'S1', 'C3', 'C2', 'C1', 'E3', 'E2', 'E1']
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -207,6 +209,21 @@ export function EmployeeEditor({ organization, onDataUpdate }: EmployeeEditorPro
               </div>
             </div>
 
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">資格等級</label>
+              <select
+                value={editForm.qualificationGrade || ''}
+                onChange={(e) => handleFormChange('qualificationGrade', e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                {qualificationGrades.map((grade) => (
+                  <option key={grade} value={grade}>
+                    {grade === '' ? '未設定' : grade}
+                  </option>
+                ))}
+              </select>
+            </div>
+
             <div className="flex items-center justify-end space-x-3 pt-4 border-t">
               <button
                 onClick={cancelEditing}
@@ -268,6 +285,11 @@ export function EmployeeEditor({ organization, onDataUpdate }: EmployeeEditorPro
                 <label className="block text-sm font-medium text-gray-600">生年月日</label>
                 <p className="text-gray-800">{selectedEmployee.birthDate}</p>
               </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-600">資格等級</label>
+              <p className="text-gray-800">{selectedEmployee.qualificationGrade || '未設定'}</p>
             </div>
           </div>
         )}

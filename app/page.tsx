@@ -3,11 +3,13 @@
 import { useState, useEffect, useRef } from 'react'
 import { OrganizationChart } from '../components/OrganizationChart'
 import { DndOrganizationChart } from '../components/DndOrganizationChart'
+import { OrganizationAnalytics } from '../components/OrganizationAnalytics'
+import { EmployeeSearch } from '../components/EmployeeSearch'
 import { AccessTokenInput } from '../components/AccessTokenInput'
 import { AuthorizationTestPanel } from '../components/AuthorizationTestPanel'
 import { Organization, Employee } from '../types/organization'
 import { useTokenAuth } from '../hooks/useTokenAuth'
-import { FaEdit, FaDownload, FaUpload, FaChevronDown, FaSignOutAlt, FaKey } from 'react-icons/fa'
+import { FaEdit, FaDownload, FaUpload, FaChevronDown, FaSignOutAlt, FaKey, FaChartBar, FaSitemap, FaSearch } from 'react-icons/fa'
 
 const loadOrganizationData = async (): Promise<Organization> => {
   try {
@@ -51,6 +53,7 @@ export default function Home() {
   const [isEditMode, setIsEditMode] = useState(false)
   const [showExportMenu, setShowExportMenu] = useState(false)
   const [showAuthTestPanel, setShowAuthTestPanel] = useState(false)
+  const [activeTab, setActiveTab] = useState<'organization' | 'analytics' | 'search'>('organization')
   const exportMenuRef = useRef<HTMLDivElement>(null)
   
   const { isAuthenticated, canWrite, canDelete, role, logout } = useTokenAuth()
@@ -318,8 +321,8 @@ export default function Home() {
   // 3. CSV形式のデータ生成
   const generateCSV = (data: Organization): string => {
     const headers = [
-      '社員ID', '氏名', '役職', '本部', '部', '課', 'メール', '電話番号', 
-      '入社日', '生年月日', '評価者ID', '評価者名', '評価者役職', '評価者所属', '評価関係タイプ'
+      '社員ID', '氏名', '役職', '本部', '部', '課', 'メール', '電話番号',
+      '入社日', '生年月日', '資格等級', '評価者ID', '評価者名', '評価者役職', '評価者所属', '評価関係タイプ'
     ]
     
     let csv = headers.join(',') + '\n'
@@ -368,6 +371,7 @@ export default function Home() {
         emp.phone,
         emp.joinDate,
         emp.birthDate,
+        emp.qualificationGrade || '',
         evaluatorId || '',
         evaluator ? evaluator.name : '',
         evaluator ? evaluator.position : '',
@@ -559,6 +563,47 @@ export default function Home() {
         </div>
       </div>
 
+      {/* タブナビゲーション */}
+      <div className="border-b bg-white">
+        <div className="container mx-auto px-4">
+          <nav className="flex space-x-8">
+            <button
+              onClick={() => setActiveTab('organization')}
+              className={`py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2 ${
+                activeTab === 'organization'
+                  ? 'border-blue-500 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              <FaSitemap className="w-4 h-4" />
+              組織図
+            </button>
+            <button
+              onClick={() => setActiveTab('analytics')}
+              className={`py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2 ${
+                activeTab === 'analytics'
+                  ? 'border-blue-500 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              <FaChartBar className="w-4 h-4" />
+              分析
+            </button>
+            <button
+              onClick={() => setActiveTab('search')}
+              className={`py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2 ${
+                activeTab === 'search'
+                  ? 'border-blue-500 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              <FaSearch className="w-4 h-4" />
+              社員検索
+            </button>
+          </nav>
+        </div>
+      </div>
+
       {/* メインコンテンツ */}
       <div className="container mx-auto px-4 py-6">
         {showAuthTestPanel && role === 'ADMIN' ? (
@@ -573,14 +618,27 @@ export default function Home() {
               </button>
             </div>
           </div>
+        ) : activeTab === 'analytics' ? (
+          <OrganizationAnalytics organization={organizationData} />
+        ) : activeTab === 'search' ? (
+          <EmployeeSearch
+            organization={organizationData}
+            onUpdateEmployee={(employee) => {
+              const updatedEmployees = organizationData.employees.map(emp =>
+                emp.id === employee.id ? employee : emp
+              )
+              handleDataUpdate({ ...organizationData, employees: updatedEmployees })
+            }}
+            onUpdateOrganization={handleDataUpdate}
+          />
         ) : isEditMode ? (
-          <DndOrganizationChart 
-            organization={organizationData} 
+          <DndOrganizationChart
+            organization={organizationData}
             onDataUpdate={handleDataUpdate}
           />
         ) : (
-          <OrganizationChart 
-            organization={organizationData} 
+          <OrganizationChart
+            organization={organizationData}
             onDataUpdate={handleDataUpdate}
           />
         )}

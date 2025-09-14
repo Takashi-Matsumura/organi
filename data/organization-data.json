@@ -185,7 +185,8 @@
       "phone": "090-1111-0001",
       "employeeId": "E001",
       "joinDate": "2015-04-01",
-      "birthDate": "1975-03-15"
+      "birthDate": "1975-03-15",
+      "qualificationGrade": "SA"
     },
     {
       "id": "emp2",
@@ -197,7 +198,8 @@
       "phone": "090-1111-0002",
       "employeeId": "E002",
       "joinDate": "2017-04-01",
-      "birthDate": "1980-07-22"
+      "birthDate": "1980-07-22",
+      "qualificationGrade": "S4"
     },
     {
       "id": "emp3",
@@ -210,7 +212,8 @@
       "phone": "090-1111-0003",
       "employeeId": "E003",
       "joinDate": "2019-04-01",
-      "birthDate": "1985-12-08"
+      "birthDate": "1985-12-08",
+      "qualificationGrade": "S1"
     },
     {
       "id": "emp4",
@@ -223,7 +226,8 @@
       "phone": "090-1111-0004",
       "employeeId": "E004",
       "joinDate": "2020-04-01",
-      "birthDate": "1987-09-03"
+      "birthDate": "1987-09-03",
+      "qualificationGrade": "S3"
     },
     {
       "id": "emp5",
@@ -235,7 +239,8 @@
       "phone": "090-1111-0005",
       "employeeId": "E005",
       "joinDate": "2016-04-01",
-      "birthDate": "1978-11-12"
+      "birthDate": "1978-11-12",
+      "qualificationGrade": "S2"
     },
     {
       "id": "emp6",
@@ -248,7 +253,8 @@
       "phone": "090-1111-0006",
       "employeeId": "E006",
       "joinDate": "2021-04-01",
-      "birthDate": "1990-05-18"
+      "birthDate": "1990-05-18",
+      "qualificationGrade": "S1"
     },
     {
       "id": "emp7",
@@ -261,7 +267,8 @@
       "phone": "090-1111-0007",
       "employeeId": "E007",
       "joinDate": "2022-04-01",
-      "birthDate": "1988-02-28"
+      "birthDate": "1988-02-28",
+      "qualificationGrade": "S2"
     },
     {
       "id": "emp8",
@@ -273,7 +280,8 @@
       "phone": "090-1111-0008",
       "employeeId": "E008",
       "joinDate": "2014-04-01",
-      "birthDate": "1973-08-07"
+      "birthDate": "1973-08-07",
+      "qualificationGrade": "SA"
     },
     {
       "id": "emp9",
@@ -285,7 +293,8 @@
       "phone": "090-1111-0009",
       "employeeId": "E009",
       "joinDate": "2018-04-01",
-      "birthDate": "1982-06-14"
+      "birthDate": "1982-06-14",
+      "qualificationGrade": "S2"
     },
     {
       "id": "emp10",
@@ -298,7 +307,8 @@
       "phone": "090-1111-0010",
       "employeeId": "E010",
       "joinDate": "2020-04-01",
-      "birthDate": "1986-10-25"
+      "birthDate": "1986-10-25",
+      "qualificationGrade": "S3"
     },
     {
       "id": "emp11",
@@ -311,7 +321,8 @@
       "phone": "090-1111-0011",
       "employeeId": "E011",
       "joinDate": "2019-04-01",
-      "birthDate": "1984-01-19"
+      "birthDate": "1984-01-19",
+      "qualificationGrade": "S3"
     },
     {
       "id": "emp12",
@@ -323,7 +334,8 @@
       "phone": "090-1111-0012",
       "employeeId": "E012",
       "joinDate": "2017-04-01",
-      "birthDate": "1979-04-09"
+      "birthDate": "1979-04-09",
+      "qualificationGrade": "S4"
     },
     {
       "id": "emp13",
@@ -336,7 +348,8 @@
       "phone": "090-1111-0013",
       "employeeId": "E013",
       "joinDate": "2021-04-01",
-      "birthDate": "1991-12-02"
+      "birthDate": "1991-12-02",
+      "qualificationGrade": "S2"
     },
     {
       "id": "emp14",
@@ -349,7 +362,8 @@
       "phone": "090-1111-0014",
       "employeeId": "E014",
       "joinDate": "2022-04-01",
-      "birthDate": "1989-07-11"
+      "birthDate": "1989-07-11",
+      "qualificationGrade": "S3"
     },
     {
       "id": "emp15",
@@ -361,7 +375,8 @@
       "phone": "090-1111-0015",
       "employeeId": "E015",
       "joinDate": "2013-04-01",
-      "birthDate": "1970-05-23"
+      "birthDate": "1970-05-23",
+      "qualificationGrade": "SA"
     },
     {
       "id": "emp16",
@@ -373,7 +388,8 @@
       "phone": "090-1111-0016",
       "employeeId": "E016",
       "joinDate": "2016-04-01",
-      "birthDate": "1981-09-16"
+      "birthDate": "1981-09-16",
+      "qualificationGrade": "S3"
     },
     {
       "id": "emp17",
@@ -386,7 +402,8 @@
       "phone": "090-1111-0017",
       "employeeId": "E017",
       "joinDate": "2020-04-01",
-      "birthDate": "1987-03-04"
+      "birthDate": "1987-03-04",
+      "qualificationGrade": "S3"
     },
     {
       "id": "emp18",
@@ -399,7 +416,8 @@
       "phone": "090-1111-0018",
       "employeeId": "E018",
       "joinDate": "2019-04-01",
-      "birthDate": "1985-11-30"
+      "birthDate": "1985-11-30",
+      "qualificationGrade": "S1"
     },
     {
       "id": "emp19",
@@ -412,7 +430,8 @@
       "phone": "090-1111-0019",
       "employeeId": "E019",
       "joinDate": "2021-04-01",
-      "birthDate": "1990-01-27"
+      "birthDate": "1990-01-27",
+      "qualificationGrade": "S2"
     },
     {
       "id": "emp20",
@@ -424,7 +443,8 @@
       "phone": "090-1111-0020",
       "employeeId": "E020",
       "joinDate": "2018-04-01",
-      "birthDate": "1983-08-13"
+      "birthDate": "1983-08-13",
+      "qualificationGrade": "S2"
     },
     {
       "id": "emp21",
@@ -437,7 +457,8 @@
       "phone": "090-1111-0021",
       "employeeId": "E021",
       "joinDate": "2022-04-01",
-      "birthDate": "1988-06-05"
+      "birthDate": "1988-06-05",
+      "qualificationGrade": "S1"
     },
     {
       "id": "emp22",
@@ -450,7 +471,8 @@
       "phone": "090-1111-0022",
       "employeeId": "E022",
       "joinDate": "2021-04-01",
-      "birthDate": "1992-04-21"
+      "birthDate": "1992-04-21",
+      "qualificationGrade": "S2"
     },
     {
       "id": "emp23",
@@ -462,7 +484,8 @@
       "phone": "090-1111-0023",
       "employeeId": "E023",
       "joinDate": "2016-04-01",
-      "birthDate": "1977-09-12"
+      "birthDate": "1977-09-12",
+      "qualificationGrade": "S3"
     },
     {
       "id": "emp24",
@@ -474,7 +497,8 @@
       "phone": "090-1111-0024",
       "employeeId": "E024",
       "joinDate": "2018-04-01",
-      "birthDate": "1982-01-28"
+      "birthDate": "1982-01-28",
+      "qualificationGrade": "S4"
     },
     {
       "id": "emp25",
@@ -487,7 +511,8 @@
       "employeeId": "E025",
       "joinDate": "2020-04-01",
       "birthDate": "1988-05-17",
-      "evaluatorId": "emp3"
+      "evaluatorId": "emp3",
+      "qualificationGrade": "C3"
     },
     {
       "id": "emp26",
@@ -500,7 +525,8 @@
       "employeeId": "E026",
       "joinDate": "2022-04-01",
       "birthDate": "1995-03-09",
-      "course": "営業二課"
+      "course": "営業二課",
+      "qualificationGrade": "E2"
     },
     {
       "id": "emp27",
@@ -512,7 +538,8 @@
       "phone": "090-1111-0027",
       "employeeId": "E027",
       "joinDate": "2017-04-01",
-      "birthDate": "1979-11-22"
+      "birthDate": "1979-11-22",
+      "qualificationGrade": "S4"
     },
     {
       "id": "emp28",
@@ -524,7 +551,8 @@
       "phone": "090-1111-0028",
       "employeeId": "E028",
       "joinDate": "2021-04-01",
-      "birthDate": "1990-07-14"
+      "birthDate": "1990-07-14",
+      "qualificationGrade": "C3"
     },
     {
       "id": "emp29",
@@ -537,7 +565,8 @@
       "phone": "090-1111-0029",
       "employeeId": "E029",
       "joinDate": "2019-04-01",
-      "birthDate": "1983-10-05"
+      "birthDate": "1983-10-05",
+      "qualificationGrade": "S2"
     },
     {
       "id": "emp101",
@@ -550,7 +579,8 @@
       "phone": "090-1111-0101",
       "employeeId": "E101",
       "joinDate": "2020-04-01",
-      "birthDate": "1990-06-10"
+      "birthDate": "1990-06-10",
+      "qualificationGrade": "S1"
     },
     {
       "id": "emp102",
@@ -563,7 +593,8 @@
       "phone": "090-1111-0102",
       "employeeId": "E102",
       "joinDate": "2022-04-01",
-      "birthDate": "1995-02-14"
+      "birthDate": "1995-02-14",
+      "qualificationGrade": "C1"
     },
     {
       "id": "emp103",
@@ -576,7 +607,8 @@
       "phone": "090-1111-0103",
       "employeeId": "E103",
       "joinDate": "2023-04-01",
-      "birthDate": "1996-11-08"
+      "birthDate": "1996-11-08",
+      "qualificationGrade": "C2"
     },
     {
       "id": "emp104",
@@ -589,7 +621,8 @@
       "phone": "090-1111-0104",
       "employeeId": "E104",
       "joinDate": "2021-04-01",
-      "birthDate": "1992-08-25"
+      "birthDate": "1992-08-25",
+      "qualificationGrade": "S1"
     },
     {
       "id": "emp105",
@@ -602,7 +635,8 @@
       "phone": "090-1111-0105",
       "employeeId": "E105",
       "joinDate": "2022-04-01",
-      "birthDate": "1994-03-19"
+      "birthDate": "1994-03-19",
+      "qualificationGrade": "E3"
     },
     {
       "id": "emp106",
@@ -615,7 +649,8 @@
       "phone": "090-1111-0106",
       "employeeId": "E106",
       "joinDate": "2023-04-01",
-      "birthDate": "1997-01-12"
+      "birthDate": "1997-01-12",
+      "qualificationGrade": "C2"
     },
     {
       "id": "emp107",
@@ -628,7 +663,8 @@
       "phone": "090-1111-0107",
       "employeeId": "E107",
       "joinDate": "2020-04-01",
-      "birthDate": "1989-09-03"
+      "birthDate": "1989-09-03",
+      "qualificationGrade": "S2"
     },
     {
       "id": "emp108",
@@ -641,7 +677,8 @@
       "phone": "090-1111-0108",
       "employeeId": "E108",
       "joinDate": "2022-04-01",
-      "birthDate": "1994-05-27"
+      "birthDate": "1994-05-27",
+      "qualificationGrade": "C2"
     },
     {
       "id": "emp109",
@@ -654,7 +691,8 @@
       "phone": "090-1111-0109",
       "employeeId": "E109",
       "joinDate": "2021-04-01",
-      "birthDate": "1991-12-16"
+      "birthDate": "1991-12-16",
+      "qualificationGrade": "S2"
     },
     {
       "id": "emp110",
@@ -667,7 +705,8 @@
       "phone": "090-1111-0110",
       "employeeId": "E110",
       "joinDate": "2023-04-01",
-      "birthDate": "1996-07-04"
+      "birthDate": "1996-07-04",
+      "qualificationGrade": "E3"
     },
     {
       "id": "emp201",
@@ -680,7 +719,8 @@
       "phone": "090-1111-0201",
       "employeeId": "E201",
       "joinDate": "2021-04-01",
-      "birthDate": "1993-04-20"
+      "birthDate": "1993-04-20",
+      "qualificationGrade": "S1"
     },
     {
       "id": "emp202",
@@ -693,7 +733,8 @@
       "phone": "090-1111-0202",
       "employeeId": "E202",
       "joinDate": "2022-04-01",
-      "birthDate": "1995-10-08"
+      "birthDate": "1995-10-08",
+      "qualificationGrade": "C2"
     },
     {
       "id": "emp203",
@@ -706,7 +747,8 @@
       "phone": "090-1111-0203",
       "employeeId": "E203",
       "joinDate": "2023-04-01",
-      "birthDate": "1997-02-28"
+      "birthDate": "1997-02-28",
+      "qualificationGrade": "E3"
     },
     {
       "id": "emp204",
@@ -719,7 +761,8 @@
       "phone": "090-1111-0204",
       "employeeId": "E204",
       "joinDate": "2020-04-01",
-      "birthDate": "1990-11-15"
+      "birthDate": "1990-11-15",
+      "qualificationGrade": "C3"
     },
     {
       "id": "emp205",
@@ -732,7 +775,8 @@
       "phone": "090-1111-0205",
       "employeeId": "E205",
       "joinDate": "2022-04-01",
-      "birthDate": "1994-08-12"
+      "birthDate": "1994-08-12",
+      "qualificationGrade": "C1"
     },
     {
       "id": "emp206",
@@ -745,7 +789,8 @@
       "phone": "090-1111-0206",
       "employeeId": "E206",
       "joinDate": "2021-04-01",
-      "birthDate": "1992-05-22"
+      "birthDate": "1992-05-22",
+      "qualificationGrade": "S2"
     },
     {
       "id": "emp207",
@@ -758,7 +803,8 @@
       "phone": "090-1111-0207",
       "employeeId": "E207",
       "joinDate": "2022-04-01",
-      "birthDate": "1995-03-07"
+      "birthDate": "1995-03-07",
+      "qualificationGrade": "C2"
     },
     {
       "id": "emp208",
@@ -771,7 +817,8 @@
       "phone": "090-1111-0208",
       "employeeId": "E208",
       "joinDate": "2020-04-01",
-      "birthDate": "1991-09-30"
+      "birthDate": "1991-09-30",
+      "qualificationGrade": "S1"
     },
     {
       "id": "emp209",
@@ -784,7 +831,8 @@
       "phone": "090-1111-0209",
       "employeeId": "E209",
       "joinDate": "2023-04-01",
-      "birthDate": "1996-12-18"
+      "birthDate": "1996-12-18",
+      "qualificationGrade": "C1"
     },
     {
       "id": "emp210",
@@ -796,7 +844,8 @@
       "phone": "090-1111-0210",
       "employeeId": "E210",
       "joinDate": "2020-04-01",
-      "birthDate": "1988-07-19"
+      "birthDate": "1988-07-19",
+      "qualificationGrade": "S1"
     },
     {
       "id": "emp211",
@@ -808,7 +857,8 @@
       "phone": "090-1111-0211",
       "employeeId": "E211",
       "joinDate": "2021-04-01",
-      "birthDate": "1993-12-03"
+      "birthDate": "1993-12-03",
+      "qualificationGrade": "E1"
     },
     {
       "id": "emp212",
@@ -820,7 +870,8 @@
       "phone": "090-1111-0212",
       "employeeId": "E212",
       "joinDate": "2022-04-01",
-      "birthDate": "1991-04-11"
+      "birthDate": "1991-04-11",
+      "qualificationGrade": "C2"
     },
     {
       "id": "emp213",
@@ -832,7 +883,8 @@
       "phone": "090-1111-0213",
       "employeeId": "E213",
       "joinDate": "2023-04-01",
-      "birthDate": "1994-08-24"
+      "birthDate": "1994-08-24",
+      "qualificationGrade": "S1"
     },
     {
       "id": "emp301",
@@ -845,7 +897,8 @@
       "phone": "090-1111-0301",
       "employeeId": "E301",
       "joinDate": "2021-04-01",
-      "birthDate": "1992-06-11"
+      "birthDate": "1992-06-11",
+      "qualificationGrade": "C3"
     },
     {
       "id": "emp302",
@@ -858,7 +911,8 @@
       "phone": "090-1111-0302",
       "employeeId": "E302",
       "joinDate": "2022-04-01",
-      "birthDate": "1994-09-23"
+      "birthDate": "1994-09-23",
+      "qualificationGrade": "E3"
     },
     {
       "id": "emp303",
@@ -871,7 +925,8 @@
       "phone": "090-1111-0303",
       "employeeId": "E303",
       "joinDate": "2023-04-01",
-      "birthDate": "1998-01-15"
+      "birthDate": "1998-01-15",
+      "qualificationGrade": "E2"
     },
     {
       "id": "emp304",
@@ -884,7 +939,8 @@
       "phone": "090-1111-0304",
       "employeeId": "E304",
       "joinDate": "2020-04-01",
-      "birthDate": "1990-12-05"
+      "birthDate": "1990-12-05",
+      "qualificationGrade": "C3"
     },
     {
       "id": "emp305",
@@ -897,7 +953,8 @@
       "phone": "090-1111-0305",
       "employeeId": "E305",
       "joinDate": "2021-04-01",
-      "birthDate": "1993-07-18"
+      "birthDate": "1993-07-18",
+      "qualificationGrade": "C2"
     },
     {
       "id": "emp306",
@@ -910,7 +967,8 @@
       "phone": "090-1111-0306",
       "employeeId": "E306",
       "joinDate": "2023-04-01",
-      "birthDate": "1997-10-29"
+      "birthDate": "1997-10-29",
+      "qualificationGrade": "E1"
     },
     {
       "id": "emp307",
@@ -923,7 +981,8 @@
       "phone": "090-1111-0307",
       "employeeId": "E307",
       "joinDate": "2021-04-01",
-      "birthDate": "1991-03-12"
+      "birthDate": "1991-03-12",
+      "qualificationGrade": "C1"
     },
     {
       "id": "emp308",
@@ -936,7 +995,8 @@
       "phone": "090-1111-0308",
       "employeeId": "E308",
       "joinDate": "2022-04-01",
-      "birthDate": "1994-11-06"
+      "birthDate": "1994-11-06",
+      "qualificationGrade": "C3"
     },
     {
       "id": "emp309",
@@ -949,7 +1009,8 @@
       "phone": "090-1111-0309",
       "employeeId": "E309",
       "joinDate": "2021-04-01",
-      "birthDate": "1992-08-14"
+      "birthDate": "1992-08-14",
+      "qualificationGrade": "C2"
     },
     {
       "id": "emp310",
@@ -962,7 +1023,8 @@
       "phone": "090-1111-0310",
       "employeeId": "E310",
       "joinDate": "2022-04-01",
-      "birthDate": "1995-04-03"
+      "birthDate": "1995-04-03",
+      "qualificationGrade": "C1"
     },
     {
       "id": "emp311",
@@ -975,7 +1037,8 @@
       "phone": "090-1111-0311",
       "employeeId": "E311",
       "joinDate": "2020-04-01",
-      "birthDate": "1989-12-27"
+      "birthDate": "1989-12-27",
+      "qualificationGrade": "S1"
     },
     {
       "id": "emp312",
@@ -988,7 +1051,8 @@
       "phone": "090-1111-0312",
       "employeeId": "E312",
       "joinDate": "2021-04-01",
-      "birthDate": "1993-05-09"
+      "birthDate": "1993-05-09",
+      "qualificationGrade": "C2"
     },
     {
       "id": "emp313",
@@ -1001,7 +1065,8 @@
       "phone": "090-1111-0313",
       "employeeId": "E313",
       "joinDate": "2021-04-01",
-      "birthDate": "1989-06-18"
+      "birthDate": "1989-06-18",
+      "qualificationGrade": "E3"
     },
     {
       "id": "emp314",
@@ -1014,7 +1079,8 @@
       "phone": "090-1111-0314",
       "employeeId": "E314",
       "joinDate": "2022-04-01",
-      "birthDate": "1992-11-07"
+      "birthDate": "1992-11-07",
+      "qualificationGrade": "C2"
     },
     {
       "id": "emp315",
@@ -1027,7 +1093,8 @@
       "phone": "090-1111-0315",
       "employeeId": "E315",
       "joinDate": "2023-04-01",
-      "birthDate": "1995-02-13"
+      "birthDate": "1995-02-13",
+      "qualificationGrade": "E3"
     }
   ]
 }

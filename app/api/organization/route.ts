@@ -54,7 +54,8 @@ async function loadInitialData(): Promise<Organization> {
           phone: '000-0000-0000',
           employeeId: 'D001',
           joinDate: '2020-04-01',
-          birthDate: '1980-01-01'
+          birthDate: '1980-01-01',
+          qualificationGrade: 'SA'
         },
         {
           id: 'emp-002',
@@ -66,7 +67,8 @@ async function loadInitialData(): Promise<Organization> {
           phone: '000-0000-0001',
           employeeId: 'D002',
           joinDate: '2021-04-01',
-          birthDate: '1985-01-01'
+          birthDate: '1985-01-01',
+          qualificationGrade: 'S3'
         }
       ]
     }

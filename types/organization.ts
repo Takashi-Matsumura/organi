@@ -1,3 +1,5 @@
+export type QualificationGrade = 'SA' | 'S4' | 'S3' | 'S2' | 'S1' | 'C3' | 'C2' | 'C1' | 'E3' | 'E2' | 'E1'
+
 export interface Employee {
   id: string
   name: string
@@ -10,6 +12,7 @@ export interface Employee {
   employeeId: string
   joinDate: string
   birthDate: string
+  qualificationGrade?: QualificationGrade // 資格等級
   evaluatorId?: string // 評価者のID（任意）
 }
 
