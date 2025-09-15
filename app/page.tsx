@@ -490,7 +490,7 @@ export default function Home() {
                   className="p-2 bg-gray-600 text-white rounded hover:bg-gray-700 transition-colors"
                   title="エクスポート"
                 >
-                  <FaDownload className="w-4 h-4" />
+                  <FaUpload className="w-4 h-4" />
                 </button>
 
                 {showExportMenu && (
@@ -548,7 +548,7 @@ export default function Home() {
                 )}
               </div>
               <label className="p-2 bg-orange-600 text-white rounded hover:bg-orange-700 transition-colors cursor-pointer" title="インポート">
-                <FaUpload className="w-4 h-4" />
+                <FaDownload className="w-4 h-4" />
                 <input
                   type="file"
                   accept=".json"
@@ -620,19 +620,7 @@ export default function Home() {
 
       {/* メインコンテンツ */}
       <div className="container mx-auto px-4 py-6 mt-[140px]">
-        {showAuthTestPanel && role === 'ADMIN' ? (
-          <div className="space-y-6">
-            <AuthorizationTestPanel />
-            <div className="text-center">
-              <button
-                onClick={() => setShowAuthTestPanel(false)}
-                className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 transition-colors"
-              >
-                組織図に戻る
-              </button>
-            </div>
-          </div>
-        ) : activeTab === 'analytics' ? (
+        {activeTab === 'analytics' ? (
           <OrganizationAnalytics organization={organizationData} />
         ) : activeTab === 'search' ? (
           <EmployeeSearch
@@ -697,6 +685,14 @@ export default function Home() {
           </div>
         )}
       </div>
+
+      {/* APIテストモーダル */}
+      {role === 'ADMIN' && (
+        <AuthorizationTestPanel
+          isOpen={showAuthTestPanel}
+          onClose={() => setShowAuthTestPanel(false)}
+        />
+      )}
     </div>
   )
 }
