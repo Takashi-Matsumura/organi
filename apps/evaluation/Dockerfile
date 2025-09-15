@@ -1,0 +1,31 @@
+# Use Node.js 20 Alpine image
+FROM node:20-alpine
+
+# Install system dependencies
+RUN apk add --no-cache libc6-compat
+
+# Set working directory to evaluation app
+WORKDIR /app
+
+# Copy package.json
+COPY apps/evaluation/package.json ./
+
+# Clear npm cache and forcefully install correct versions
+RUN npm cache clean --force
+RUN npm install --no-package-lock --force
+RUN npm uninstall @tailwindcss/postcss @tailwindcss/node tailwindcss --force
+RUN npm install tailwindcss@3.4.14 --save-dev --force
+
+# Copy evaluation app source
+COPY apps/evaluation/ ./
+
+# Expose port
+EXPOSE 3001
+
+# Set environment variables
+ENV NODE_ENV=development
+ENV PORT=3001
+ENV NEXT_TELEMETRY_DISABLED=1
+
+# Start the development server
+CMD ["npm", "run", "dev"]
