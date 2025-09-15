@@ -19,6 +19,9 @@ RUN npm install tailwindcss@3.4.14 --save-dev --force
 # Copy evaluation app source
 COPY apps/evaluation/ ./
 
+# Create data directory for volume mounting
+RUN mkdir -p /app/data
+
 # Expose port
 EXPOSE 3001
 

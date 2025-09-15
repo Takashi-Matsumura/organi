@@ -10,6 +10,8 @@ services:
     environment:
       - NODE_ENV=development
       - PORT=3000
+    volumes:
+      - ./data:/app/data:ro
     networks:
       - organi-network
 
@@ -22,6 +24,8 @@ services:
     environment:
       - NODE_ENV=development
       - PORT=3001
+    volumes:
+      - ./data:/app/data:ro
     networks:
       - organi-network
 
