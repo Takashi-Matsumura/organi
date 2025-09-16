@@ -42,3 +42,4 @@ next-env.d.ts
 
 # reference code (private)
 /pj2025sample
+apps/organization/.next/
