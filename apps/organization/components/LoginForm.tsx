@@ -2,21 +2,35 @@
 
 import { useState } from 'react'
 import { useAuth } from '../hooks/useAuth'
-import { FaUser, FaLock, FaEye, FaEyeSlash, FaInfoCircle, FaSpinner } from 'react-icons/fa'
+import { FaUser, FaLock, FaEye, FaEyeSlash, FaInfoCircle, FaSpinner, FaCog, FaServer } from 'react-icons/fa'
 
 export function LoginForm() {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [showDemo, setShowDemo] = useState(false)
+  const [showAdvanced, setShowAdvanced] = useState(false)
+  const [ldapSettings, setLdapSettings] = useState({
+    url: '',
+    baseDN: '',
+    bindDN: '',
+    bindPassword: ''
+  })
+  const [testingConnection, setTestingConnection] = useState(false)
   
   const { login, isLoading, error, authStatus } = useAuth()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!username || !password) return
-    
-    const success = await login({ username, password })
+
+    const loginData = {
+      username,
+      password,
+      ...(showAdvanced && ldapSettings.url ? { ldapSettings } : {})
+    }
+
+    const success = await login(loginData)
     if (success) {
       // ログイン成功時はページをリロードして状態を確実に更新
       setUsername('')
@@ -29,6 +43,35 @@ export function LoginForm() {
     const success = await login({ username: demoUsername, password: demoPassword })
     if (success) {
       window.location.reload()
+    }
+  }
+
+  const handleTestConnection = async () => {
+    if (!ldapSettings.url || !username || !password) return
+
+    setTestingConnection(true)
+    try {
+      const response = await fetch('/api/auth/test-ldap', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          ldapConfig: ldapSettings,
+          credentials: { username, password }
+        })
+      })
+
+      const result = await response.json()
+      if (result.success) {
+        alert('LDAP接続テストが成功しました！')
+      } else {
+        alert(`LDAP接続テストが失敗しました: ${result.error}`)
+      }
+    } catch (error) {
+      alert('接続テスト中にエラーが発生しました')
+    } finally {
+      setTestingConnection(false)
     }
   }
 
@@ -181,6 +224,113 @@ export function LoginForm() {
           )}
         </div>
       )}
+
+      {/* 高度な設定 */}
+      <div className="mt-6">
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center text-sm text-gray-600">
+            <FaCog className="mr-1" size={12} />
+            高度な設定
+          </div>
+          <button
+            onClick={() => setShowAdvanced(!showAdvanced)}
+            className="text-sm text-blue-600 hover:text-blue-800"
+          >
+            {showAdvanced ? '閉じる' : 'LDAP設定'}
+          </button>
+        </div>
+
+        {showAdvanced && (
+          <div className="space-y-4 p-4 bg-gray-50 border border-gray-200 rounded">
+            <div className="flex items-center text-sm font-medium text-gray-700 mb-3">
+              <FaServer className="mr-2" size={14} />
+              LDAPサーバ設定
+            </div>
+
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">
+                LDAP URL
+              </label>
+              <input
+                type="text"
+                value={ldapSettings.url}
+                onChange={(e) => setLdapSettings(prev => ({ ...prev, url: e.target.value }))}
+                className="w-full px-3 py-2 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                placeholder="ldap://ldap.company.com:389"
+                disabled={isLoading}
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">
+                Base DN
+              </label>
+              <input
+                type="text"
+                value={ldapSettings.baseDN}
+                onChange={(e) => setLdapSettings(prev => ({ ...prev, baseDN: e.target.value }))}
+                className="w-full px-3 py-2 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                placeholder="dc=company,dc=com"
+                disabled={isLoading}
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">
+                Bind DN
+              </label>
+              <input
+                type="text"
+                value={ldapSettings.bindDN}
+                onChange={(e) => setLdapSettings(prev => ({ ...prev, bindDN: e.target.value }))}
+                className="w-full px-3 py-2 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                placeholder="cn=admin,dc=company,dc=com"
+                disabled={isLoading}
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">
+                Bind Password
+              </label>
+              <input
+                type="password"
+                value={ldapSettings.bindPassword}
+                onChange={(e) => setLdapSettings(prev => ({ ...prev, bindPassword: e.target.value }))}
+                className="w-full px-3 py-2 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                placeholder="バインドパスワード"
+                disabled={isLoading}
+              />
+            </div>
+
+            {/* 接続テストボタン */}
+            {ldapSettings.url && username && password && (
+              <button
+                onClick={handleTestConnection}
+                disabled={testingConnection}
+                className={`w-full py-2 px-3 rounded text-sm font-medium transition-colors flex items-center justify-center gap-2 ${
+                  testingConnection
+                    ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                    : 'bg-green-600 text-white hover:bg-green-700'
+                }`}
+              >
+                {testingConnection ? (
+                  <>
+                    <FaSpinner className="animate-spin" size={14} />
+                    テスト中...
+                  </>
+                ) : (
+                  'LDAP接続テスト'
+                )}
+              </button>
+            )}
+
+            <div className="text-xs text-gray-500">
+              ※ 設定したLDAPサーバで認証をテストできます
+            </div>
+          </div>
+        )}
+      </div>
 
       {/* LDAP認証時の注意 */}
       {authStatus?.authMode === 'ldap' && (
