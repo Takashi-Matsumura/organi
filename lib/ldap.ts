@@ -5,6 +5,12 @@ export class LDAPService {
   private config: AuthConfig['ldap']
 
   constructor(config: AuthConfig['ldap']) {
+    console.log('LDAPService constructor called with config:', {
+      url: config?.url || 'MISSING',
+      baseDN: config?.baseDN || 'MISSING',
+      bindDN: config?.bindDN || 'NOT SET',
+      bindPassword: config?.bindPassword ? 'SET' : 'NOT SET'
+    })
     this.config = config
   }
 
@@ -20,22 +26,33 @@ export class LDAPService {
     })
 
     try {
-      // サービスアカウントでバインド
-      await this.bind(client, this.config.bindDN, this.config.bindPassword)
+      // bindDN/bindPasswordが提供されている場合はサービスアカウントでバインド
+      if (this.config.bindDN && this.config.bindPassword) {
+        await this.bind(client, this.config.bindDN, this.config.bindPassword)
+        
+        // ユーザー検索
+        const userDN = await this.searchUser(client, credentials.username)
+        if (!userDN) {
+          return null
+        }
 
-      // ユーザー検索
-      const userDN = await this.searchUser(client, credentials.username)
-      if (!userDN) {
-        return null
+        // ユーザー認証
+        await this.bind(client, userDN, credentials.password)
+
+        // ユーザー情報取得
+        const userInfo = await this.getUserInfo(client, userDN)
+        return userInfo
+      } else {
+        // 直接ユーザー認証を試行（匿名バインドまたは簡易認証）
+        const userDN = this.constructUserDN(credentials.username)
+        
+        // ユーザー認証
+        await this.bind(client, userDN, credentials.password)
+
+        // ユーザー情報取得
+        const userInfo = await this.getUserInfo(client, userDN)
+        return userInfo
       }
-
-      // ユーザー認証
-      await this.bind(client, userDN, credentials.password)
-
-      // ユーザー情報取得
-      const userInfo = await this.getUserInfo(client, userDN)
-      
-      return userInfo
 
     } catch (error) {
       console.error('LDAP authentication failed:', error)
@@ -45,12 +62,35 @@ export class LDAPService {
     }
   }
 
+  private constructUserDN(username: string): string {
+    if (!this.config) {
+      throw new Error('LDAP configuration not provided')
+    }
+    
+    console.log('Constructing user DN:', { username, baseDN: this.config.baseDN })
+    
+    // 一般的なユーザーDN構築パターン（企業によって異なる）
+    // cn=username,baseDN または uid=username,baseDN
+    const userDN = `cn=${username},${this.config.baseDN}`
+    console.log('Constructed user DN:', userDN)
+    
+    return userDN
+  }
+
   private bind(client: ldap.Client, dn: string, password: string): Promise<void> {
+    console.log('LDAP bind attempt:', { dn: dn || 'EMPTY', password: password ? 'SET' : 'EMPTY' })
+    
+    if (!dn || !password) {
+      return Promise.reject(new Error(`Invalid bind parameters: dn=${dn}, password=${password ? 'SET' : 'EMPTY'}`))
+    }
+    
     return new Promise((resolve, reject) => {
-      client.bind(dn, password, (err) => {
+      client.bind(dn, password, (err: any) => {
         if (err) {
+          console.log('LDAP bind failed:', err.message || err)
           reject(err)
         } else {
+          console.log('LDAP bind successful')
           resolve()
         }
       })

@@ -7,6 +7,19 @@ export interface AuthUser {
   section?: string
   course?: string
   ldapDN?: string
+  // 追加のLDAP属性
+  employeeID?: string
+  employeeNumber?: string
+  title?: string
+  company?: string
+  division?: string
+  telephoneNumber?: string
+  mobile?: string
+  manager?: string
+  givenName?: string
+  surname?: string
+  description?: string
+  memberOf?: string[]
 }
 
 export interface UserPermissions {
@@ -35,8 +48,8 @@ export interface AuthConfig {
   ldap?: {
     url: string
     baseDN: string
-    bindDN: string
-    bindPassword: string
+    bindDN?: string
+    bindPassword?: string
   }
   jwt: {
     secret: string

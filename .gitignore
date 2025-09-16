@@ -43,3 +43,27 @@ next-env.d.ts
 # reference code (private)
 /pj2025sample
 apps/organization/.next/
+
+# security
+.env
+.env.production
+.env.development
+/data/auth.log
+*.log
+
+# Development temporary files
+apps/organization/node_modules/
+apps/organization/package-lock.json
+apps/organization/dev.log
+apps/organization/temp-org/
+apps/evaluation/node_modules/
+apps/evaluation/package-lock.json
+apps/evaluation/dev.log
+
+# Next.js
+apps/organization/.next/
+apps/evaluation/.next/
+
+# TypeScript
+apps/organization/next-env.d.ts
+apps/evaluation/next-env.d.ts

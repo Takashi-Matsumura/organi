@@ -36,10 +36,10 @@ export function useAuth() {
     error: null
   })
 
-  // 認証状態の変化をログ出力
-  useEffect(() => {
-    console.log('useAuth state changed:', authState)
-  }, [authState])
+  // デバッグ用ログ（必要に応じてコメントアウト）
+  // useEffect(() => {
+  //   console.log('useAuth state changed:', authState)
+  // }, [authState])
 
   const [authStatus, setAuthStatus] = useState<AuthStatus | null>(null)
 
@@ -161,8 +161,6 @@ export function useAuth() {
     ldapSettings?: {
       url: string
       baseDN: string
-      bindDN: string
-      bindPassword: string
     }
     proxySettings?: {
       enabled: boolean

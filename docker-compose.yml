@@ -10,6 +10,17 @@ services:
     environment:
       - NODE_ENV=development
       - PORT=3000
+      # 認証設定
+      - AUTH_MODE=${AUTH_MODE:-bypass}
+      # LDAP設定
+      - LDAP_URL=${LDAP_URL:-}
+      - LDAP_BASE_DN=${LDAP_BASE_DN:-}
+      - LDAP_BIND_DN=${LDAP_BIND_DN:-}
+      - LDAP_BIND_PASSWORD=${LDAP_BIND_PASSWORD:-}
+      # JWT設定
+      - JWT_SECRET=${JWT_SECRET:-default-secret-change-this}
+      - JWT_EXPIRES_IN=${JWT_EXPIRES_IN:-24h}
+      - JWT_REFRESH_EXPIRES_IN=${JWT_REFRESH_EXPIRES_IN:-7d}
     volumes:
       - ./data:/app/data:ro
     networks:

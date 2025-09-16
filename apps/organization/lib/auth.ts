@@ -14,6 +14,9 @@ export class AuthService {
     if (this.config.mode === 'ldap' && this.config.ldap) {
       this.ldapService = new LDAPService(this.config.ldap)
     }
+    
+    // 起動時に認証設定をログ出力（パスワードは除く）
+    this.logAuthConfig()
   }
 
   private loadConfig(): AuthConfig {
@@ -33,6 +36,30 @@ export class AuthService {
     }
   }
 
+  private logAuthConfig(): void {
+    console.log('[AuthService] Initialized with mode:', this.config.mode)
+    if (this.config.mode === 'ldap' && this.config.ldap) {
+      console.log('[AuthService] LDAP configuration:')
+      console.log('  - URL:', this.config.ldap.url || 'Not configured')
+      console.log('  - Base DN:', this.config.ldap.baseDN || 'Not configured')
+      console.log('  - Bind DN:', this.config.ldap.bindDN || 'Not configured')
+      console.log('  - Bind Password:', this.config.ldap.bindPassword ? '****' : 'Not configured')
+    } else if (this.config.mode === 'bypass') {
+      console.log('[AuthService] Using bypass authentication (development mode)')
+    }
+  }
+  
+  private logAuthAttempt(username: string, success: boolean, error?: string): void {
+    const timestamp = new Date().toISOString()
+    const message = `[${timestamp}] Auth attempt for user "${username}": ${success ? 'SUCCESS' : 'FAILED'}`
+    
+    if (success) {
+      console.log(message)
+    } else {
+      console.error(message, error || 'Unknown error')
+    }
+  }
+
   async authenticate(credentials: LoginCredentials): Promise<AuthResult> {
     try {
       let user: AuthUser | null = null
@@ -40,6 +67,7 @@ export class AuthService {
       if (this.config.mode === 'ldap') {
         // LDAP認証
         if (!this.ldapService) {
+          this.logAuthAttempt(credentials.username, false, 'LDAP service not configured')
           return {
             success: false,
             error: 'LDAP service not configured'
@@ -53,6 +81,7 @@ export class AuthService {
       }
 
       if (!user) {
+        this.logAuthAttempt(credentials.username, false, 'Invalid credentials')
         return {
           success: false,
           error: 'Invalid credentials'
@@ -65,6 +94,9 @@ export class AuthService {
       // JWT生成
       const token = this.jwtService.generateAccessToken(user, permissions)
       const refreshToken = this.jwtService.generateRefreshToken(user, permissions)
+
+      // 認証成功をログに記録
+      this.logAuthAttempt(credentials.username, true)
 
       return {
         success: true,
