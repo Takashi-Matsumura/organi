@@ -13,8 +13,8 @@ async function loadInitialData(): Promise<Organization> {
   }
 
   try {
-    // ビルド時に含まれる静的ファイルから読み込み
-    const DATA_FILE_PATH = path.join(process.cwd(), 'data', 'organization-data.json')
+    // ビルド時に含まれる静的ファイルから読み込み - ルートディレクトリのdataフォルダから読み込み
+    const DATA_FILE_PATH = '/Users/matsbaccano/projects/clone/organi/data/organization-data.json'
     const fileContents = await readFile(DATA_FILE_PATH, 'utf8')
     const parsedData: Organization = JSON.parse(fileContents)
     organizationData = parsedData

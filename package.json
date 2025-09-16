@@ -1,23 +1,13 @@
 {
   "name": "organi-monorepo",
-  "version": "1.0.0",
   "private": true,
+  "workspaces": ["apps/*", "packages/*"],
   "scripts": {
     "dev": "turbo run dev --parallel",
     "build": "turbo run build",
-    "start": "turbo run start",
-    "lint": "turbo run lint",
-    "type-check": "turbo run type-check",
-    "dev:organization": "turbo run dev --filter=@organi/organization",
-    "dev:evaluation": "turbo run dev --filter=@organi/evaluation",
-    "build:organization": "turbo run build --filter=@organi/organization",
-    "build:evaluation": "turbo run build --filter=@organi/evaluation"
+    "lint": "turbo run lint"
   },
   "devDependencies": {
-    "turbo": "^2.1.3"
-  },
-  "workspaces": [
-    "apps/*",
-    "packages/*"
-  ]
+    "turbo": "^2.0.0"
+  }
 }
