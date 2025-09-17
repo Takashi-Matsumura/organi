@@ -6,10 +6,9 @@ import { DndOrganizationChart } from '../components/DndOrganizationChart'
 import { OrganizationAnalytics } from '../components/OrganizationAnalytics'
 import { EmployeeSearch } from '../components/EmployeeSearch'
 import { AccessTokenInput } from '../components/AccessTokenInput'
-import { AuthorizationTestPanel } from '../components/AuthorizationTestPanel'
 import { Organization, Employee } from '../types/organization'
 import { useTokenAuth } from '../hooks/useTokenAuth'
-import { FaEdit, FaDownload, FaUpload, FaChevronDown, FaSignOutAlt, FaKey, FaChartBar, FaSitemap, FaSearch } from 'react-icons/fa'
+import { FaEdit, FaDownload, FaUpload, FaChevronDown, FaSignOutAlt, FaChartBar, FaSitemap, FaSearch } from 'react-icons/fa'
 
 const loadOrganizationData = async (): Promise<Organization> => {
   try {
@@ -74,7 +73,6 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null)
   const [isEditMode, setIsEditMode] = useState(false)
   const [showExportMenu, setShowExportMenu] = useState(false)
-  const [showAuthTestPanel, setShowAuthTestPanel] = useState(false)
   const [activeTab, setActiveTab] = useState<'organization' | 'analytics' | 'search'>('organization')
   const exportMenuRef = useRef<HTMLDivElement>(null)
   
@@ -663,20 +661,6 @@ export default function Home() {
                     {isEditMode ? '表示モード' : '編集モード'}
                   </button>
                 )}
-                {role === 'ADMIN' && (
-                  <button
-                    onClick={() => setShowAuthTestPanel(!showAuthTestPanel)}
-                    className={`flex items-center gap-2 px-4 py-2 rounded transition-colors ${
-                      showAuthTestPanel
-                        ? 'bg-purple-600 text-white hover:bg-purple-700'
-                        : 'bg-purple-600 text-white hover:bg-purple-700'
-                    }`}
-                    title="認可APIテスト画面"
-                  >
-                    <FaKey className="w-4 h-4" />
-                    APIテスト
-                  </button>
-                )}
               </div>
             </div>
 
@@ -696,13 +680,6 @@ export default function Home() {
         )}
       </div>
 
-      {/* APIテストモーダル */}
-      {role === 'ADMIN' && (
-        <AuthorizationTestPanel
-          isOpen={showAuthTestPanel}
-          onClose={() => setShowAuthTestPanel(false)}
-        />
-      )}
     </div>
   )
 }

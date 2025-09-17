@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
+import { createPortal } from 'react-dom'
 import { Employee, Organization, QualificationGrade } from '../types/organization'
 import { useTokenAuth } from '../hooks/useTokenAuth'
 
@@ -18,15 +19,21 @@ export function EmployeeModal({ employee, isOpen, onClose, organization, onUpdat
   const [editForm, setEditForm] = useState<Employee | null>(null)
   const [activeTab, setActiveTab] = useState<'info' | 'evaluees'>('info')
   const [isEditingEvaluees, setIsEditingEvaluees] = useState(false)
-  
+  const [mounted, setMounted] = useState(false)
+
   // ドラッグ機能の状態
   const [isDragging, setIsDragging] = useState(false)
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 })
   const [position, setPosition] = useState({ x: 0, y: 0 })
   const modalRef = useRef<HTMLDivElement>(null)
-  
+
   // アクセスToken認証
   const { canWrite } = useTokenAuth()
+
+  // クライアントサイドでのマウント状態を管理
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   // モーダルが開かれるたびに基本情報タブにリセット
   useEffect(() => {
@@ -80,7 +87,7 @@ export function EmployeeModal({ employee, isOpen, onClose, organization, onUpdat
     }
   }, [isDragging, dragOffset])
 
-  if (!isOpen || !employee) return null
+  if (!isOpen || !employee || !mounted) return null
 
   // 管理職かどうかを判定
   const isManager = () => {
@@ -252,9 +259,14 @@ export function EmployeeModal({ employee, isOpen, onClose, organization, onUpdat
   const startEditingEvaluees = () => setIsEditingEvaluees(true)
   const cancelEditingEvaluees = () => setIsEditingEvaluees(false)
 
-  return (
-    <div className="fixed inset-0 flex items-center justify-center z-50" style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}>
-      <div 
+  // React Portalを使用してモーダルを画面全体に確実に表示
+  // 理由:
+  // - z-indexだけでは親要素のスタッキングコンテキストに制約される
+  // - document.bodyに直接レンダリングすることで既存のDOM構造から独立
+  // - モーダル、ツールチップ等の確実なオーバーレイ表示の標準的解決策
+  const modalContent = (
+    <div className="fixed inset-0 flex items-center justify-center z-[9999]" style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}>
+      <div
         ref={modalRef}
         className="bg-white rounded-lg shadow-lg max-w-2xl w-full mx-4 select-none"
         style={{
@@ -626,4 +638,7 @@ export function EmployeeModal({ employee, isOpen, onClose, organization, onUpdat
       </div>
     </div>
   )
+
+  // Portal使用: モーダルをdocument.bodyに直接レンダリングしてz-index競合を回避
+  return createPortal(modalContent, document.body)
 }
