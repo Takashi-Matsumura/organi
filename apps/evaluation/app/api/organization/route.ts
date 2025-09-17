@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server';
 // 組織管理アプリからデータを取得するAPIルート
 export async function GET() {
   try {
-    const response = await fetch('http://organization:3000/api/organization', {
+    const response = await fetch('http://localhost:3000/api/organization', {
       cache: 'no-store', // キャッシュを無効にする
     });
 
